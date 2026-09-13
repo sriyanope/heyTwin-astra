@@ -1,115 +1,118 @@
 # Design System
 
+> Product scope lives in [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md). This document only covers visual and interaction design conventions for heyTwin.
+
 ## Product Feel
 
-FamLens should feel:
+heyTwin should feel:
 
-- Gentle
+- Confident
+- Stylish
 - Clear
+- Encouraging
 - Trustworthy
-- Warm
-- Calm
-- Human
-- Accessible
+- Effortless
 
 It should not feel:
 
 - Clinical
-- Technical
-- Overloaded
-- Childish
-- Robotic
-- Surveillance-like
+- Like a shopping catalogue pretending to know the user's wardrobe
+- Cluttered
+- Falsely certain about fit
 
 ## Visual Direction
 
 Recommended style:
 
-- High contrast
-- Large text
-- Rounded cards
-- Minimal layout
-- Calm color palette
+- Large, legible garment and outfit imagery — this is the priority visual element on every screen
+- High contrast text and controls
+- Clear, uncluttered cards
+- Calm, neutral colour palette that lets garment photos stand out
 - Clear focus states
-- Large audio controls
+- Minimal chrome around the imagery — avoid visual elements that compete with the clothing itself
 
 ## Typography
 
 Use:
 
-- Large base font size
-- Clear readable typeface
+- Clear, readable typeface
 - Strong heading hierarchy
-- Avoid thin fonts
-- Avoid dense paragraphs
+- Legible base font size
+- Avoid dense paragraphs; keep explanations short
 
 ## Layout
 
 Primary layout:
 
 ```text
-Top: Simple title and privacy indicator
-Center: Main action / summary
-Bottom: Audio controls and next actions
+Top: Simple title / step indicator
+Center: Garment or outfit imagery (primary focus)
+Bottom: Primary action and secondary controls
 ```
 
 ## Core Components
 
-- Upload button
-- Summary card
-- Audio control bar
-- Detail card
-- Question panel
-- Reply draft card
+- Garment photo card
+- Attribute confirmation chips/controls
+- Occasion selector
+- Outfit board / outfit cards
+- Item ownership badge ("Your item" / "Suggested item")
+- Explanation text block
 - Confidence note
-- Privacy notice
-- Family label card
+- Sample/fallback indicator
+- Refinement controls
+- Favorite button
 
 ## Interaction Principles
 
 - One main action per screen
-- Audio and text always paired
-- Repeat is always available
-- User confirms before final actions
-- Never trap user in loading state
-- Show plain-language errors
+- The garment image always stays visible and legible — never obscure it behind controls
+- Ownership labeling ("Your item" / "Suggested item") is always visible, never ambiguous or omitted
+- The user confirms or corrects identified attributes before recommendations are generated
+- Show honest, plain-language empty and error states
+- Never trap the user in a loading state — always provide a retry or way out
 
 ## Agent UI Principles
 
-Agent messages should be:
+Agent-facing copy should be:
 
 - Short
-- Spoken-friendly
 - User-facing
 - Honest about uncertainty
-- Free from hidden reasoning
+- Free from hidden reasoning or technical jargon
 
-Example:
+Example — attribute identification:
 
-> "I found some text in this photo. It appears to say Happy Birthday Ethan."
+> "This looks like a navy floral top."
+
+Example — outfit explanation:
+
+> "These pair well because the muted tones in the trousers complement the pattern in your top."
 
 ## Empty States
 
 Example:
 
-> "No photo selected yet. Choose a photo, and I will describe it aloud."
+> "No item added yet. Add a photo of one top or bottom, and I'll suggest outfits to go with it."
 
 ## Error States
 
 Example:
 
-> "I could not clearly understand this image. It may be too blurry. You can try another photo or ask me a simpler question."
+> "I couldn't clearly identify this garment — the photo may be too blurry or dark. Try another photo, or adjust the details below yourself."
 
 ## Confidence Notes
 
+These describe confidence about a **garment attribute**, never about a person.
+
 High confidence:
 
-> "I am fairly confident this is a birthday photo."
+> "I'm confident this is a navy top."
 
 Medium confidence:
 
-> "I think this may be a birthday photo, but part of the image is blurry."
+> "This looks like a floral pattern, but part of the photo is hard to read."
 
 Low confidence:
 
-> "I am not fully sure what this photo shows."
+> "I'm not fully sure about the pattern on this piece — you can correct it below."

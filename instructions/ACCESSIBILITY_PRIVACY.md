@@ -1,151 +1,82 @@
 # Accessibility, Privacy, and Safety
 
+> Product scope lives in [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md). This document covers accessibility good practice and privacy/safety requirements for heyTwin.
+
 ## Accessibility Principles
 
-FamLens is for visually impaired elderly users. Accessibility is not a bonus feature. It is the product.
+heyTwin is a mobile-first visual styling app for general fashion shoppers, not an accessibility-first product for a specific access need. Accessibility here is **ordinary inclusive-design good practice** — contrast, labels, alt text, keyboard use — applied because it makes the product better for everyone, not because it is the product's defining identity.
 
 ## UX Requirements
 
 The interface should be:
 
-- Voice-first
-- Simple
+- Simple and mobile-first
 - High contrast
 - Screen-reader compatible
-- Large touch target friendly
-- Low cognitive load
-- Forgiving of mistakes
-- Usable with caregiver support
+- Reasonably sized touch targets
+- Low cognitive load (short explanations, minimal jargon)
+- Forgiving of mistakes (easy to correct a wrong attribute, easy to retry a failed request)
 
 ## Required Accessibility Features
 
-- Text-to-speech output
-- Transcript for every spoken answer
-- Repeat button
-- Pause button
-- Slow speech option
-- Large buttons
-- Clear labels
-- Keyboard navigation
-- Screen-reader labels
-- High contrast mode
-- No gesture-only controls
-- No time-limited interactions without pause
+- Readable contrast between text and background
+- Legible text size across all screens
+- Clear labels on all interactive controls: upload/capture button, confirm/correct controls, occasion selector, outfit cards, refinement and favorite buttons
+- Keyboard operability where relevant to a mobile web app (visible focus states, sensible tab order)
+- Useful alt text / image descriptions for garment and outfit images — an outfit board full of images needs meaningful descriptions for screen-reader users (e.g. "Your item: navy floral top" / "Suggested item: beige tailored trousers")
+- Accessible status, loading, and error messages that are exposed to screen readers, not conveyed by visual styling alone
 
-## Elder-Friendly Language
+## Plain-Language Uncertainty Wording
+
+Use plain, jargon-free language for confidence and uncertainty, appropriate for any user — not just an accessibility-specific audience.
 
 Use:
 
 - Short sentences
-- Warm but not childish tone
 - Clear uncertainty wording
 - No technical jargon
-- No overwhelming detail upfront
 
 Avoid:
 
-- "Object detected"
-- "Model confidence score is low"
-- "Vision inference failed"
-- Long paragraphs
-- Overly cheerful or patronizing language
+- "Confidence score: 0.62"
+- "Model inference uncertain"
+- "Classification failed"
 
 Better:
 
-> "I am not fully sure because the photo is blurry."
+> "I'm not fully sure about the pattern on this piece — you can correct it below."
 
 ## Privacy Principles
 
-Family photos are sensitive.
-
-Photos may include:
-
-- Faces
-- Children
-- Homes
-- Private events
-- Location clues
-- Screenshots
-- Personal messages
+Garment photos are personal, but they are not as sensitive as family or child photos. The privacy bar is still meaningful: minimize retention by default, be honest about what happens to an uploaded photo, and protect backend secrets.
 
 ## Privacy Requirements
 
-- Do not store uploaded photos by default.
-- Use temporary processing.
-- Allow photo deletion.
-- Make family labels opt-in.
-- Let users delete family labels.
-- Do not train models on user photos.
-- Do not send messages automatically.
+- Do not store uploaded garment photos longer than needed for processing.
+- Do not train models on user photos without clearly saying so.
+- Protect backend secrets — API keys for the vision/recommendation provider (provider is unverified/TBD) must never be exposed in frontend code, client bundles, or logs.
 - Do not expose image contents in logs.
-- Do not share data with family unless user confirms.
+- Any privacy note shown to the user must describe image handling accurately — do not claim images are deleted if they aren't, and do not claim more privacy protection than is actually implemented.
 
-## Consent Rules
+## Body/Fit Honesty
 
-Family identity labels require consent.
+- Never claim to infer body type from a garment photo.
+- Never claim a suggested outfit "fits" the user.
+- Only describe visible garment attributes (category, colour, pattern, etc.) and styling compatibility between pieces — never physical fit.
 
-Acceptable:
+## Recommendation Honesty
 
-> "This is Ethan, my grandson. Save this label."
-
-Not acceptable:
-
-> Automatically identifying people across all photos without consent.
-
-## Identity Safety
-
-Use uncertainty language:
-
-- "This may be..."
-- "I think this could be..."
-- "I am not fully sure..."
-- "The image is blurry, so I may be wrong."
-
-Avoid:
-
-- "This is definitely..."
-- "I know this person is..."
-- "Your grandson is..."
-
-Unless confidence is high and user-labeled context exists.
-
-## Emotional Safety
-
-Do not infer sensitive emotions or relationships too strongly.
-
-Avoid:
-
-- "They are sad because..."
-- "They are angry at you..."
-- "This person looks sick..."
-
-Better:
-
-- "The mood appears quiet."
-- "The person is not smiling."
-- "I cannot tell how they are feeling for sure."
-
-## Reply Safety
-
-Replies must require user confirmation.
-
-Never auto-send.
-
-Reply drafts should be:
-
-- Warm
-- Short
-- Respectful
-- Editable
-- Easy to cancel
+- Every outfit view must visually and textually distinguish **"Your item"** (what the user actually uploaded) from **"Suggested item"** (a complementary piece they may or may not own).
+- Never imply a suggested item is already in the user's wardrobe.
+- Do not fabricate product availability or purchase links.
+- Any sample, cached, or fallback content shown in a demo must be labeled honestly, never presented as live.
 
 ## Safety Checklist
 
-- [ ] No default photo storage
-- [ ] Family labels are opt-in
-- [ ] Delete option exists
-- [ ] Uncertainty wording appears
-- [ ] No hidden chain-of-thought shown
-- [ ] Replies require confirmation
-- [ ] Works with screen reader
-- [ ] Main flow works without visual guidance
+- [ ] No default long-term photo storage
+- [ ] No fabricated purchase links or availability claims
+- [ ] Uncertainty wording appears for low-confidence attribute identification
+- [ ] "Your item" vs "Suggested item" distinction is always visible
+- [ ] No body-type or fit-inference claims anywhere in copy or UI
+- [ ] Works reasonably with a screen reader
+- [ ] Main flow is usable without relying on visual-only cues

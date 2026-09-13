@@ -1,28 +1,28 @@
-# FamLens AI Markdown Pack
+# heyTwin AI Markdown Pack
 
-This pack contains tailored markdown files for the FamLens project: an Agnes AI-powered accessibility companion for visually impaired elderly users.
+This pack contains tailored markdown files for **heyTwin**: a mobile-first AI styling app that turns a photo of one top or bottom into visual, explained outfit recommendations. See [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md) for canonical scope.
 
 ## Main Project Files
 
 | File | Purpose |
 |---|---|
-| `README.md` | Main overview, demo flow, stack, and project docs |
+| `README.md` | Main overview, essential flow, features, stack status, and project docs |
 | `AGENTS.md` | Coding-agent instructions and project guardrails |
-| `CLAUDE.md` | Source of truth for AI workflow and product behavior |
-| `PRODUCT_BRIEF.md` | Problem, users, MVP scope, metrics, and risks |
-| `HACKATHON_POSITIONING.md` | Best use of Agnes AI API positioning |
+| `CLAUDE.md` | Source of truth for the AI pipeline and product behavior |
+| `PRODUCT_BRIEF.md` | Canonical scope — problem, users, essential flow, exclusions, honesty rules, risks |
+| `HACKATHON_POSITIONING.md` | Judging story, differentiator, and the Astra-vs-runtime-provider distinction |
 | `DEMO_FLOW.md` | Demo story, scenes, script structure, and backup plan |
 | `ARCHITECTURE.md` | System design and repository structure |
-| `API_CONTRACTS.md` | Suggested API schemas and endpoints |
+| `API_CONTRACTS.md` | Suggested API schemas and endpoints for the garment/outfit pipeline |
 | `DATA_FLOW.md` | End-to-end data processing flow |
-| `FRONTEND.md` | Frontend architecture and accessibility UI rules |
-| `BACKEND.md` | Backend responsibilities and Agnes integration rules |
-| `ACCESSIBILITY_PRIVACY.md` | Accessibility, privacy, consent, and AI safety rules |
+| `FRONTEND.md` | Frontend architecture and UI rules |
+| `BACKEND.md` | Backend responsibilities and AI pipeline integration rules |
+| `ACCESSIBILITY_PRIVACY.md` | Privacy, consent, and product-honesty-adjacent safety rules |
 | `DESIGN_SYSTEM.md` | Visual and interaction design guidelines |
-| `ROADMAP.md` | Milestones and implementation priorities |
-| `TESTING.md` | Manual tests, accessibility tests, and QA checklist |
+| `ROADMAP.md` | Milestones and implementation priorities for the 5-hour build |
+| `TESTING.md` | Manual tests and QA checklist |
 | `ENVIRONMENT.md` | Environment variables and secrets handling |
-| `DECISIONS.md` | Architecture decision record template |
+| `DECISIONS.md` | Architecture decision record log, including the FamLens/TFR-to-heyTwin pivot and the unverified runtime provider |
 
 ## Role Files
 
@@ -32,8 +32,8 @@ This pack contains tailored markdown files for the FamLens project: an Agnes AI-
 | `roles/UX_UI_DESIGNER.md` | UX/UI Designer |
 | `roles/FRONTEND_DEVELOPER.md` | Frontend Developer |
 | `roles/BACKEND_DEVELOPER.md` | Backend Developer |
-| `roles/AI_ENGINEER.md` | AI Engineer |
-| `roles/API_INTEGRATION_ENGINEER.md` | Agnes API Integration Engineer |
+| `roles/AI_ENGINEER.md` | AI Engineer (garment identification and outfit recommendation) |
+| `roles/API_INTEGRATION_ENGINEER.md` | API Integration Engineer (confirms the runtime vision/styling model provider, currently TBD) |
 | `roles/ACCESSIBILITY_RESEARCHER.md` | Accessibility Researcher |
 | `roles/PRIVACY_SAFETY_LEAD.md` | Privacy and Safety Lead |
 | `roles/QA_TESTER.md` | QA Tester |

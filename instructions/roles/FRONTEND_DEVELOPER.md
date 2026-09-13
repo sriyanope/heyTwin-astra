@@ -2,63 +2,75 @@
 
 ## Mission
 
-Build the accessible user interface for FamLens and connect it to backend APIs.
+Implement heyTwin's mobile-first upload-to-outfit UI and connect it to backend APIs: capture/upload, garment attribute confirmation, outfit cards, loading/error states, and whichever prioritised-addition refinements the team has time for. See [`PRODUCT_BRIEF.md`](../PRODUCT_BRIEF.md) for the essential flow this UI must complete end to end.
 
 ## Responsibilities
 
-- Implement upload/share image flow
-- Build accessible UI components
-- Connect to backend endpoints
-- Implement text-to-speech playback
-- Display summary, OCR, Q&A, and reply results
-- Handle loading, error, empty, and fallback states
-- Ensure responsive and screen-reader-friendly UI
+- Implement the capture/upload flow for one top or bottom.
+- Build the garment attribute confirmation UI, including user corrections.
+- Build the occasion selector and the outfit results board.
+- Connect to backend endpoints for garment analysis, confirmation, and outfit recommendation.
+- Display outfit cards with the your-item/suggested-item distinction visually unmistakable on every card.
+- Handle loading, error, low-confidence, and fallback states.
+- Ensure the UI is usable on an actual mobile browser, not just a desktop viewport.
 
 ## Main Components
 
-- `UploadPanel`
-- `AudioControls`
-- `SummaryCard`
-- `DetailCard`
-- `QuestionPanel`
-- `ReplyDraftCard`
+- `CapturePanel`
+- `GarmentConfirmCard`
+- `OccasionSelector`
+- `OutfitCard`
+- `ItemOwnershipBadge`
+- `ExplanationText`
 - `ConfidenceNote`
-- `PrivacyNotice`
-- `FamilyLabelForm`
+- `RefinementControls` (prioritised addition)
+- `FavoriteButton` (prioritised addition)
 
 ## API Endpoints To Consume
 
-- `POST /api/analyze-image`
-- `POST /api/ask-image`
-- `POST /api/generate-reply`
-- `POST /api/family-labels`
-- `DELETE /api/family-labels/{id}`
+- `POST /api/analyze-garment`
+- `POST /api/confirm-garment`
+- `POST /api/recommend-outfits`
+- `POST /api/refine-outfit` (prioritised addition)
+
+Confirm exact route names and payload shapes against [`API_CONTRACTS.md`](../API_CONTRACTS.md) before wiring calls — that file is the source of truth for the contract, not this list.
 
 ## Frontend Rules
 
-- Do not expose Agnes API key.
-- Use `NEXT_PUBLIC_BACKEND_URL`.
-- Keep all private calls backend-side.
-- Add accessible labels to buttons.
-- Show transcript for all spoken output.
-- Do not rely only on visual indicators.
-- Show fallback/source state clearly.
+- Never expose the runtime vision/recommendation model's API key in frontend code.
+- Keep all model calls backend-side; the frontend only talks to heyTwin's own API.
+- Label the your-item/suggested-item distinction in every outfit view.
+- Show `source_state` (e.g. sample/fallback) honestly whenever it is not live.
+- Add accessible labels to interactive controls.
+- Do not claim fit or body-type information in any rendered copy, including error or placeholder text.
 
 ## Required States
 
-- Loading: "I am looking at the photo now."
-- Success: summary and audio controls
-- Low confidence: uncertainty note
-- Error: simple retry message
-- Fallback: "Using demo fallback response."
+- Loading: e.g. "Looking at your item..."
+- Success: identified attributes + outfit cards rendered.
+- Low confidence: correction prompt shown before recommendations proceed.
+- Error: simple, readable retry message — never a blank screen.
+- Fallback: honest "showing a sample result" notice when live output isn't available.
 
 ## Definition of Done
 
-- [ ] Upload works
-- [ ] Summary renders
-- [ ] Audio playback works or is simulated
-- [ ] Q&A flow works
-- [ ] Reply draft renders
-- [ ] Error states exist
-- [ ] Screen reader labels added
-- [ ] No secrets in frontend
+- [ ] Capture/upload works
+- [ ] Attribute confirmation with correction works
+- [ ] At least one outfit renders
+- [ ] Item-ownership label visible on every outfit
+- [ ] Error and fallback states exist
+- [ ] Accessible labels present on controls
+- [ ] No secrets in frontend code
+- [ ] Works on an actual mobile browser, not just desktop
+
+## Dependencies / Handoffs
+
+- Implements the UX/UI Designer's mockups and component guide.
+- Consumes endpoints built by the Backend Developer, confirmed against the API Integration Engineer's provider integration work.
+- Hands the built flow to the QA Tester for end-to-end testing.
+
+## Scope Boundaries (Out of Scope for This Role)
+
+- Does not own backend logic, validation, or the runtime model call — that is the Backend Developer's job.
+- Does not choose or negotiate the runtime AI provider — that is the API Integration Engineer's job.
+- Does not design the visual system from scratch — implements the UX/UI Designer's designs.

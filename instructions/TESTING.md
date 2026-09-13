@@ -1,19 +1,20 @@
 # Testing and Verification
 
+> Product scope: see [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md). This document is a forward-looking test plan — it describes what should be checked, not a report of testing that has already happened.
+
 ## Manual Test Flow
 
 1. Start backend.
 2. Start frontend.
-3. Upload a birthday photo.
-4. Confirm short summary appears.
-5. Confirm audio playback works or is simulated.
-6. Ask a follow-up question.
-7. Confirm answer is relevant.
-8. Ask what text appears in the image.
-9. Generate a reply.
-10. Confirm reply requires user confirmation.
-11. Upload blurry image.
-12. Confirm uncertainty wording appears.
+3. Upload or capture a garment photo (one top or bottom).
+4. Confirm identified attributes appear (category, colour, pattern, with confidence).
+5. Deliberately correct an attribute to confirm the correction step actually works (not just displayed).
+6. Optionally select an occasion (casual / work / going out).
+7. Confirm outfit recommendations appear — target 3, at least 1 required.
+8. Confirm the user's own item is visually distinguishable from suggested items in every outfit shown.
+9. Confirm each outfit has a short explanation.
+10. Upload a blurry or ambiguous garment photo and confirm uncertainty wording appears instead of overclaiming.
+11. Simulate the runtime model being unavailable and confirm a sample fallback appears with an honest `source_state`.
 
 ## Test Cases
 
@@ -21,65 +22,62 @@
 
 Input:
 
-- Clear family photo with visible cake text
+- A clear garment photo (unambiguous colour, category, pattern)
 
 Expected:
 
-- Short summary
-- Detailed description
-- OCR text
-- Warm reply
-- Confidence note
+- Attributes are identified with reasonable confidence
+- User can confirm or correct attributes
+- Outfit recommendations are generated
+- The user's item is clearly labeled as such in every outfit, distinct from suggested items
+- Each outfit carries a short explanation
 
-### Blurry Image
-
-Expected:
-
-- No overclaiming
-- Uncertainty note
-- Option to retry
-
-### No Text in Image
+### Blurry / Ambiguous Image
 
 Expected:
 
-- App says no clear text was found
-- Does not hallucinate text
+- Uncertainty note appears
+- No overclaiming of attributes the model isn't confident about
+- Retry option is available
+- User can still proceed via manual correction
 
-### Unknown Person
-
-Expected:
-
-- Describes person generally
-- Does not invent name or relationship
-
-### Family Label Available
+### Unusual Garment
 
 Expected:
 
-- Uses "possibly" or confidence-aware wording
-- Does not say identity with false certainty
+- App describes visible attributes generally
+- Does not invent a category, pattern, or material it cannot actually see
 
-### API Failure
+### Occasion Selector Variation
+
+Expected (best-effort — not a strict correctness bar for a hackathon prototype):
+
+- Recommendations plausibly differ, or are at least contextualized, across occasion choices
+
+### Model / API Failure
 
 Expected:
 
 - Sample fallback response appears
-- Source state shows sample/fallback
-- Demo continues
+- `source_state` shows `sample` or `fallback`
+- Demo continues without pretending the fallback is live
+
+### Mobile Device Check
+
+Expected:
+
+- The flow is usable on an actual phone browser (not just a resized desktop viewport)
 
 ## Accessibility Testing
 
 Checklist:
 
-- [ ] Can use with keyboard
+- [ ] Keyboard operable where relevant
 - [ ] Buttons have labels
-- [ ] Screen reader announces main actions
-- [ ] Text is readable at large size
-- [ ] Audio can be repeated
-- [ ] No important content is visual-only
-- [ ] Error states are spoken or readable
-- [ ] User can complete main flow without seeing image
+- [ ] Screen reader announces main state changes
+- [ ] Text is legible
+- [ ] Garment and outfit images have useful descriptions
+- [ ] Error states are readable
 
 ## Security Testing
 
@@ -88,6 +86,5 @@ Checklist:
 - [ ] API key is backend-only
 - [ ] Uploaded image is not logged
 - [ ] Uploaded image is not stored by default
-- [ ] Family labels can be deleted
-- [ ] Reply is not auto-sent
 - [ ] `.env` is not committed
+- [ ] No fabricated purchase link or availability claim appears in any response

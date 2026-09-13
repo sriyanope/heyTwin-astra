@@ -1,132 +1,93 @@
 # Demo Flow
 
+> Product scope: see [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md). This is a forward-looking demo script — it describes the plan for the demo, not a report of a demo that has already been run.
+
 ## Demo Goal
 
-Show that FamLens helps visually impaired elderly users understand and respond to family images using Agnes AI.
+Show that heyTwin turns one photographed garment into a confident, explained, wearable outfit — and that this actually worked live during the hackathon, on the deployed app.
 
-The demo should prove that Agnes AI is used as a multimodal workflow engine, not just a text generator.
+The demo should show the deployed app's real runtime behavior: capture a garment, identify its attributes, confirm/correct them, and generate outfit recommendations that clearly distinguish the user's item from suggested items, each with a short explanation.
+
+Separately, the demo/pitch can mention how **GPT Astra** was used during **development** (per [`HACKATHON_POSITIONING.md`](HACKATHON_POSITIONING.md)). Astra is the development platform used to build heyTwin — it is not necessarily the runtime vision/recommendation service the deployed app calls at inference time, and the two should not be conflated when explaining "how AI was used."
 
 ## Demo Setup
 
-Use 3 safe sample images:
+Use 3 safe sample garment photos:
 
-1. Birthday photo
-2. WhatsApp travel/photo update with visible text
-3. Blurry or ambiguous family image
+1. A plain top with a clear, unambiguous colour.
+2. A patterned bottom (e.g. plaid, floral, or striped).
+3. A poor-lighting or otherwise ambiguous item, to show honest uncertainty handling.
 
 ## Scene 1: Problem
 
 Narration:
 
-> Family updates often arrive as photos. For visually impaired elderly users, this can make them feel left out of the moment.
+> A well-liked piece of clothing sits unused in the wardrobe because the person doesn't know what to pair it with.
 
-Show a WhatsApp-style message with an image.
+## Scene 2: Capture / Upload
 
-## Scene 2: Upload / Share Image
-
-User opens FamLens and selects:
-
-> Describe Photo
+User opens heyTwin and photographs or uploads a garment.
 
 The app shows:
 
 - Image selected
 - Processing started
-- Voice output loading state
 
-Status:
+## Scene 3: Attribute Identification + Confirmation
 
-> "I am looking at the photo now."
+heyTwin identifies the garment's visible attributes (category, colour, pattern) with confidence.
 
-## Scene 3: Short Spoken Summary
+The user deliberately corrects one attribute to prove the confirmation step is real, not scripted.
 
-FamLens says:
+## Scene 4: Occasion Selection (Optional)
 
-> "This looks like a birthday celebration. A child is smiling beside a cake. The cake appears to say Happy Birthday Ethan."
+User selects an occasion: casual, work, or going out.
 
-UI shows:
+## Scene 5: Outfit Recommendations
 
-- Short summary
-- Play/repeat button
-- "Tell me more" button
-- "Ask a question" button
+heyTwin presents outfit recommendations built around the confirmed garment.
 
-## Scene 4: Detailed Description
+Each outfit visually distinguishes:
 
-User taps:
+- **Your item** — the garment the user supplied
+- **Suggested item** — a complementary piece the user may not own
 
-> Tell me more
+## Scene 6: Explanation
 
-FamLens says:
+Read aloud the explanation text for at least one outfit — a short, plain-language reason the combination works.
 
-> "There are several people gathered indoors around a table. The child in the middle looks happy. There are candles on the cake, and the room feels like a warm family gathering."
+## Scene 7: Refinement (If Built)
 
-## Scene 5: OCR Text Reading
+If the refinement action was built in time: apply one refinement (e.g. "make it more casual" or "change the shoes") and show the updated recommendation.
 
-User asks:
-
-> "What does the cake say?"
-
-FamLens answers:
-
-> "The cake appears to say Happy Birthday Ethan. The text is partly small, so I am not fully certain about every word."
-
-## Scene 6: Family Context
-
-If using family labels:
-
-> "This may be your grandson Ethan. I am not fully sure, but it matches the saved family label."
-
-Important: uncertainty must be visible.
-
-## Scene 7: Reply Draft
-
-App asks:
-
-> "Would you like help replying?"
-
-FamLens drafts:
-
-> "Looks like such a happy birthday celebration. I’m so happy to see everyone smiling. Send my love to Ethan."
-
-User can:
-
-- Copy reply
-- Regenerate warmer reply
-- Make it shorter
-- Cancel
+This is a prioritised addition, not part of the essential flow — skip this scene if it wasn't built.
 
 ## Scene 8: Ambiguous Image
 
-Show a blurry image.
+Upload the poor-lighting/ambiguous sample garment photo.
 
-FamLens says:
-
-> "I am not fully sure who is in this photo. I can see one person standing near a table, but the face is blurry."
-
-This proves safe AI behavior.
+heyTwin shows uncertainty wording instead of overclaiming the identified attributes, matching the reliability story: the app is honest about what it isn't sure of.
 
 ## Closing Line
 
-> FamLens turns family photos into spoken understanding, follow-up conversation, and warm replies, helping visually impaired elderly users stay part of the moment.
+> heyTwin helps someone rediscover a wearable combination for a piece of clothing they'd stopped using.
 
 ## Backup Plan
 
-If live AI fails:
+If the live runtime model call fails:
 
-- Use cached sample response.
-- Show source state as "sample fallback."
-- Continue the demo honestly.
-- Do not pretend fallback output is live.
+- Use a cached sample response.
+- Show `source_state` as `sample` or `fallback`, labeled honestly in the UI.
+- Continue the demo without pretending the fallback output is live.
 
 ## Demo Checklist
 
-- [ ] Image upload works.
-- [ ] Short description appears.
-- [ ] Voice output works or is simulated.
-- [ ] Follow-up Q&A works.
-- [ ] OCR example works.
-- [ ] Reply draft works.
-- [ ] Uncertainty example works.
-- [ ] Privacy note appears.
-- [ ] Demo can run without real WhatsApp integration.
+- [ ] Capture/upload works.
+- [ ] Attribute identification appears.
+- [ ] Correction step works.
+- [ ] At least one outfit recommendation renders.
+- [ ] Item-ownership labeling ("your item" vs "suggested item") is visually clear.
+- [ ] Explanation text appears.
+- [ ] Uncertainty example works on a poor photo.
+- [ ] Demo runs on the actual deployed URL, not just localhost.
+- [ ] Video is exactly 90 seconds and viewable signed-out (no access request required).
