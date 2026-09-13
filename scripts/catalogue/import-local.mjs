@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   root, dataDir, loadJson, saveItems, loadItems, upsertItem, findByImageHash,
-  slugify, shortHash, sha256File, validateAndProcessImage, writeCatalogueImage, today, newRunLog, record,
+  slugify, shortHash, sha256File, validateAndProcessImage, writeCatalogueImage, today, newRunLog, record, appendRunLog,
 } from './lib.mjs';
 
 const sourcesPath = path.join(dataDir, 'sources.json');
@@ -52,6 +52,7 @@ async function main() {
     record(runLog, 'accepted', { source: entry.path, id });
   }
   saveItems(items);
+  appendRunLog('local-import', runLog);
 }
 
 main();

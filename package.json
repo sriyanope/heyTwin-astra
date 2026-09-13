@@ -7,8 +7,12 @@
     "start": "node server.mjs",
     "dev": "node server.mjs",
     "build": "node --check server.mjs && node --check public/app.js && node scripts/build-catalogue.mjs",
-    "test": "node --test tests/api.test.mjs",
-    "test:browser": "playwright test"
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "playwright test",
+    "catalogue:discover": "node scripts/catalogue/fetch-commons.mjs discover",
+    "catalogue:build": "node scripts/catalogue/build.mjs",
+    "catalogue:contact-sheet": "node scripts/catalogue/contact-sheet.mjs",
+    "catalogue:report": "node scripts/catalogue/report.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

@@ -7,7 +7,7 @@
 import path from 'node:path';
 import {
   dataDir, loadJson, saveJson, loadItems, saveItems, upsertItem, findByImageHash, findBySourcePage,
-  slugify, shortHash, sha256File, validateAndProcessImage, writeCatalogueImage, today, newRunLog, record, isAllowedByRobots,
+  slugify, shortHash, sha256File, validateAndProcessImage, writeCatalogueImage, today, newRunLog, record, isAllowedByRobots, appendRunLog,
 } from './lib.mjs';
 import { cachedGetText, cachedGetBinary } from './lib.mjs';
 import { extractProduct, extractProductLinks } from './merchant.mjs';
@@ -94,6 +94,7 @@ async function main() {
     saveItems(items);
   }
   saveItems(items);
+  appendRunLog('merchant-import', runLog);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) await main();

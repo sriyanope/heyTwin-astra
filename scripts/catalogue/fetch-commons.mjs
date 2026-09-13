@@ -17,7 +17,7 @@
 import path from 'node:path';
 import {
   cacheDir, dataDir, loadJson, saveJson, loadItems, saveItems, upsertItem, findByImageHash, findBySourcePage,
-  slugify, shortHash, sha256File, ensureDir, validateAndProcessImage, writeCatalogueImage, today, newRunLog, record, sleep,
+  slugify, shortHash, sha256File, ensureDir, validateAndProcessImage, writeCatalogueImage, today, newRunLog, record, sleep, appendRunLog,
 } from './lib.mjs';
 import { commonsCategoryUrl, commonsFileUrl, extractFileLinksFromCategoryHtml, extractFullResImageUrl, extractAuthor, extractTitle, extractLicense } from './commons.mjs';
 import { cachedGetText, cachedGetBinary } from './lib.mjs';
@@ -146,6 +146,6 @@ async function importFiles() {
 }
 
 const mode = process.argv[2];
-if (mode === 'discover') await discover();
-else if (mode === 'import' || !mode) await importFiles();
+if (mode === 'discover') appendRunLog('commons-discover', await discover() || newRunLog());
+else if (mode === 'import' || !mode) { const { runLog } = await importFiles(); appendRunLog('commons-import', runLog); }
 else { console.error(`Unknown mode "${mode}". Use: discover | import`); process.exitCode = 1; }
