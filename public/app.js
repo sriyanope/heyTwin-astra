@@ -580,7 +580,7 @@ function clearDialog() {
   );
   $("#preview-controls").replaceChildren();
   $("#model-wrap").replaceChildren(
-    node("p", "", "Generate the 2D preview first, then choose Explore in 3D."),
+    node("p", "", "Choose a 2D preview or explore the outfit in 3D."),
   );
   $("#model-controls").replaceChildren();
   $("#model-status").textContent = "Ready when you are";

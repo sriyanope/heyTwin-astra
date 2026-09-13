@@ -2,7 +2,7 @@
 
 Run `npm ci`, then `npm run dev`, and open **http://localhost:4173**. Upload a top or bottom, confirm its description, and select **Find my pairings**. Suggested garment images generate automatically when the pairings appear, beside the unchanged original photo. Cached images appear immediately; failures offer **Retry image**. Each card also offers **Find similar** and **Preview outfit**. Inside the dialog, select **Explore in 3D** for a simplified model from the confirmed garment descriptions. Generating the 2D mannequin image is a separate action; only the optional Meshy path requires it first. Drag/touch rotates the GLB, wheel/pinch zooms, and **Reset view** restores the camera.
 
-OpenAI supplies structured garment colours and shapes; local deterministic geometry builds the GLB. This is OpenAI-assisted parametric modelling, not native OpenAI image-to-3D reconstruction. Patterns, textures and fine design details are simplified. OpenAI API charges still apply, but no Meshy account or credits are required by default.
+Terra (`gpt-5.6-terra`) directs the Responses image-generation tool for 2D images and supplies structured garment colours and shapes for 3D; local deterministic geometry builds the GLB. This is OpenAI-assisted parametric modelling, not native OpenAI image-to-3D reconstruction. Patterns, textures and fine design details are simplified. OpenAI API charges still apply, but no Meshy account or credits are required by default.
 
 The original stays unchanged on the card. The mannequin is an approximate outfit visualization: it cannot establish physical fit, and unseen details may differ. There is no cloth simulation, measurement inference or checkout.
 
@@ -13,13 +13,14 @@ Add values to `.env` locally and restart the server. Keep the existing vision/st
 | Variable | Source and purpose |
 | --- | --- |
 | `IMAGE_API_KEY` | Optional separate OpenAI key for generated images. `OPENAI_API_KEY` also works. When vision uses the official `https://api.openai.com` origin, the adapter can reuse `VISION_MODEL_API_KEY`. |
-| `IMAGE_MODEL` | Defaults to documented `gpt-image-1.5`. |
+| `GENERATION_MODEL` | Defaults to `gpt-5.6-terra`, independently of `VISION_MODEL`. Selects the Responses model directing image generation and the default 3D parameter model. |
+| `IMAGE_MODEL` | Image tool renderer, default `gpt-image-1.5`. Keep a GPT Image model here; Terra belongs in `GENERATION_MODEL`. |
 | `IMAGE_QUALITY` | Defaults to `medium`. Garment output is 1024×1024; mannequin output is 1024×1536. |
-| `IMAGE_TIMEOUT_MS` | Request deadline; `.env.example` recommends 180000. No automatic paid retry. |
+| `IMAGE_TIMEOUT_MS` | Request deadline; defaults to 180000 ms. No automatic paid retry. |
 | `SERPAPI_API_KEY` | Obtain from [SerpApi API key management](https://serpapi.com/manage-api-key). Enables Google Lens and Google Shopping. |
 | `PUBLIC_ASSET_ORIGIN` | Optional public HTTPS origin of this app, e.g. `https://your-deployment.example`. It must serve the app's `/generated/` URLs. Localhost cannot be used by Lens; without a public origin, text search works. This is not a credential. |
 | `MODEL_3D_PROVIDER` | Defaults to `openai`. Only explicit `meshy` enables paid Meshy jobs. Having a Meshy key alone never enables them. |
-| `MODEL_3D_MODEL` | Defaults to the existing `VISION_MODEL`, then `gpt-5.6-terra`. Must support structured JSON output. |
+| `MODEL_3D_MODEL` | Defaults to `GENERATION_MODEL`, then `gpt-5.6-terra`; never inherits `VISION_MODEL`. Must support structured JSON output. |
 | `MODEL_3D_API_KEY` | Optional separate OpenAI key; otherwise reuses the image/OpenAI key, or the vision key when its origin is official OpenAI. |
 | `SERPAPI_TIMEOUT_MS` | Defaults to 25000; bounded to 10000–45000 ms. |
 | `MESHY_API_KEY` | Optional. Create in [Meshy API settings](https://www.meshy.ai/settings/api); see [authentication](https://docs.meshy.ai/en/api/authentication). |
@@ -27,6 +28,8 @@ Add values to `.env` locally and restart the server. Keep the existing vision/st
 | `MESHY_POLL_MS`, `MESHY_MAX_POLLS` | Defaults 5000 and 120 (a bounded approximately 10-minute window). A timed-out known task is checked again on explicit retry without submitting a duplicate job. |
 
 Missing credentials produce setup states; normal use never silently receives fixture products or mannequin models. Visual search uses only the isolated generated suggestion. Text fallback uses structured garment details, including before image generation. Products have source-provided links and prices only; delivery, availability, and exact matches are not promised.
+
+Image requests use `store: false`, force a single image-tool result, and keep original references out of the local manifest. The cache includes both the Terra model and image-tool settings, so changing either creates a separate cache entry.
 
 ## Persistence and demo use
 

@@ -7,6 +7,7 @@ import { createGenerationService } from '../lib/generation.mjs';
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=', 'base64');
 const image = `data:image/png;base64,${png.toString('base64')}`;
+const imageOutput = (encoded = png.toString('base64')) => ({ status: 'completed', output: [{ type: 'image_generation_call', status: 'completed', result: encoded }] });
 const glbJson = Buffer.from('{"asset":{"version":"2.0"}}');
 const glb = (() => { const padded = Buffer.concat([glbJson, Buffer.alloc((4 - glbJson.length % 4) % 4, 0x20)]); const out = Buffer.alloc(20 + padded.length); out.write('glTF'); out.writeUInt32LE(2, 4); out.writeUInt32LE(out.length, 8); out.writeUInt32LE(padded.length, 12); out.writeUInt32LE(0x4E4F534A, 16); padded.copy(out, 20); return out; })();
 const context = (pairing_id = 'pair-a') => ({ pairing_id, image_hash: 'upload-sha', attributes: { category: 'bottom', garment_type: 'trousers', colour: 'indigo', pattern: 'solid', material: 'denim', silhouette: 'straight-leg', length: 'full', details: 'five-pocket' }, original_attributes: { category: 'top', colour: 'ivory', pattern: 'floral', silhouette: 'peplum' } });
@@ -17,8 +18,10 @@ async function eventually(check, milliseconds = 600) { const end = Date.now() + 
 test('generated garment images cache by attributes and return persisted opaque assets', async t => {
   const storageDir = await temporary(t); let calls = 0;
   const service = createGenerationService({ storageDir, env: { IMAGE_API_KEY: 'test' }, fetchImpl: async (url, options) => {
-    calls++; assert.equal(String(url), 'https://api.openai.com/v1/images/generations');
-    assert.equal(JSON.parse(options.body).model, 'gpt-image-1.5'); return response({ data: [{ b64_json: png.toString('base64') }] });
+    calls++; assert.equal(String(url), 'https://api.openai.com/v1/responses');
+    const request = JSON.parse(options.body);
+    assert.equal(request.model, 'gpt-5.6-terra'); assert.equal(request.tools[0].model, 'gpt-image-1.5');
+    assert.equal(request.store, false); assert.deepEqual(request.tool_choice, { type: 'image_generation' }); return response(imageOutput());
   } });
   assert.equal((await service.start('image', context())).image.status, 'pending');
   const complete = await eventually(async () => { const value = await service.state(context()); assert.equal(value.image.status, 'succeeded'); return value; });
@@ -37,10 +40,12 @@ test('preview uses the original only as a transient image-edit reference and req
   const missing = createGenerationService({ storageDir: path.join(storageDir, 'missing'), env: {} });
   await missing.start('preview', context(), { image });
   assert.equal((await eventually(async () => { const s = await missing.state(context()); assert.equal(s.preview.status, 'setup_required'); return s; })).preview.code, 'PROVIDER_NOT_CONFIGURED');
-  const service = createGenerationService({ storageDir, env: { OPENAI_API_KEY: 'test' }, fetchImpl: async (url, options) => { body = options.body; assert.equal(String(url), 'https://api.openai.com/v1/images/edits'); return response({ data: [{ b64_json: png.toString('base64') }] }); } });
+  const service = createGenerationService({ storageDir, env: { OPENAI_API_KEY: 'test' }, fetchImpl: async (url, options) => { body = JSON.parse(options.body); assert.equal(String(url), 'https://api.openai.com/v1/responses'); return response(imageOutput()); } });
   await service.start('preview', context(), { image });
   await eventually(async () => assert.equal((await service.state(context())).preview.status, 'succeeded'));
-  assert.equal(body.get('model'), 'gpt-image-1.5'); assert.equal(body.getAll('image[]')[0].size, png.length);
+  assert.equal(body.model, 'gpt-5.6-terra'); assert.equal(body.tools[0].model, 'gpt-image-1.5');
+  assert.equal(body.tools[0].size, '1024x1536'); assert.equal(body.store, false);
+  assert.equal(body.input[0].content[1].image_url, image);
   assert.equal((await fs.readFile(path.join(storageDir, 'manifest.json'), 'utf8')).includes(image), false);
 });
 
@@ -48,7 +53,7 @@ test('duplicate model actions issue one Meshy create request and poll to a downl
   const storageDir = await temporary(t); let creates = 0; let checks = 0;
   const service = createGenerationService({ storageDir, env: { IMAGE_API_KEY: 'i', MESHY_API_KEY: 'm', MODEL_3D_PROVIDER:'meshy', MESHY_POLL_MS: 25 }, fetchImpl: async (url, options) => {
     const target = String(url);
-    if (target.endsWith('/images/generations') || target.endsWith('/images/edits')) return response({ data: [{ b64_json: png.toString('base64') }] });
+    if (target.endsWith('/responses')) return response(imageOutput());
     if (target.endsWith('/image-to-3d') && options.method === 'POST') { creates++; return response({ result: 'mesh-task' }); }
     if (target.endsWith('/image-to-3d/mesh-task')) { checks++; return response({ status: checks === 1 ? 'IN_PROGRESS' : 'SUCCEEDED', model_urls: { glb: 'https://assets.meshy.ai/demo/model.glb?token=only-provider-knows' } }); }
     if (target.startsWith('https://assets.meshy.ai/')) return response(glb, 200, { 'content-length': String(glb.length) });
@@ -65,7 +70,7 @@ test('Meshy failure is retryable, timeout is bounded, and a restart only resumes
   const common = { storageDir, env: { IMAGE_API_KEY: 'i', MESHY_API_KEY: 'm', MODEL_3D_PROVIDER:'meshy', MESHY_POLL_MS: 25, MESHY_MAX_POLLS: 1 } };
   const fetcher = async (url, options) => {
     const target = String(url);
-    if (target.endsWith('/images/generations') || target.endsWith('/images/edits')) return response({ data: [{ b64_json: png.toString('base64') }] });
+    if (target.endsWith('/responses')) return response(imageOutput());
     if (target.endsWith('/image-to-3d') && options.method === 'POST') { creates++; return response({ result: 'saved-task' }); }
     if (target.endsWith('/image-to-3d/saved-task')) { checks++; return response({ status: checks === 1 ? 'IN_PROGRESS' : 'SUCCEEDED', model_urls: { glb: 'https://assets.meshy.ai/saved.glb' } }); }
     if (target.startsWith('https://assets.meshy.ai/')) return response(glb, 200, { 'content-length': String(glb.length) });
@@ -90,7 +95,7 @@ test('untrusted redirects, non-GLB bytes, and provider timeout become safe retry
   const storageDir = await temporary(t);
   const service = createGenerationService({ storageDir, env: { IMAGE_API_KEY: 'i', MESHY_API_KEY: 'm', MODEL_3D_PROVIDER:'meshy' }, fetchImpl: async (url, options) => {
     const target = String(url);
-    if (target.endsWith('/images/generations') || target.endsWith('/images/edits')) return response({ data: [{ b64_json: png.toString('base64') }] });
+    if (target.endsWith('/responses')) return response(imageOutput());
     if (target.endsWith('/image-to-3d') && options.method === 'POST') return response({ result: 'unsafe' });
     if (target.endsWith('/image-to-3d/unsafe')) return response({ status: 'SUCCEEDED', model_urls: { glb: 'https://evil.invalid/escape.glb' } });
   } });
@@ -102,12 +107,12 @@ test('untrusted redirects, non-GLB bytes, and provider timeout become safe retry
 
 test('malformed PNG and GLB provider output is rejected before it becomes an asset', async t => {
   const storageDir = await temporary(t); const bad = Buffer.from('not-a-png').toString('base64');
-  const imageService = createGenerationService({ storageDir, env: { IMAGE_API_KEY: 'i' }, fetchImpl: async () => response({ data: [{ b64_json: bad }] }) });
+  const imageService = createGenerationService({ storageDir, env: { IMAGE_API_KEY: 'i' }, fetchImpl: async () => response(imageOutput(bad)) });
   await imageService.start('image', context());
   await eventually(async () => { const state = await imageService.state(context()); assert.equal(state.image.status, 'failed'); assert.equal(state.image.code, 'INVALID_PROVIDER_OUTPUT'); });
   const modelService = createGenerationService({ storageDir: path.join(storageDir, 'model'), env: { IMAGE_API_KEY: 'i', MESHY_API_KEY: 'm', MODEL_3D_PROVIDER:'meshy' }, fetchImpl: async (url, options) => {
     const target = String(url);
-    if (target.endsWith('/images/edits')) return response({ data: [{ b64_json: png.toString('base64') }] });
+    if (target.endsWith('/responses')) return response(imageOutput());
     if (target.endsWith('/image-to-3d') && options.method === 'POST') return response({ result: 'bad-glb' });
     if (target.endsWith('/image-to-3d/bad-glb')) return response({ status: 'SUCCEEDED', model_urls: { glb: 'https://assets.meshy.ai/x.glb' } });
     return response(Buffer.from('glTF-but-not-a-v2-file'), 200, { 'content-length': '22' });
@@ -119,7 +124,7 @@ test('malformed PNG and GLB provider output is rejected before it becomes an ass
 
 test('accepts a valid streamed image response larger than the ordinary JSON control limit', async t => {
   const storageDir = await temporary(t); const large = Buffer.concat([png, Buffer.alloc(1100 * 1024)]);
-  const encoded = Buffer.from(JSON.stringify({ data: [{ b64_json: large.toString('base64') }] }));
+  const encoded = Buffer.from(JSON.stringify(imageOutput(large.toString('base64'))));
   const service = createGenerationService({ storageDir, env: { IMAGE_API_KEY: 'i' }, fetchImpl: async () => ({ ok: true, status: 200, body: new ReadableStream({ start(controller) { controller.enqueue(encoded.subarray(0, 700000)); controller.enqueue(encoded.subarray(700000)); controller.close(); } }) }) });
   await service.start('image', context());
   await eventually(async () => assert.equal((await service.state(context())).image.status, 'succeeded'));
@@ -128,11 +133,12 @@ test('accepts a valid streamed image response larger than the ordinary JSON cont
 test('default 3D provider uses OpenAI parameters without a preview or Meshy request', async t => {
   const storageDir = await temporary(t); let calls = [], request;
   const spec = { top:{type:'blouse',colour:'#f0dfc0',sleeves:'long',silhouette:'peplum'}, bottom:{type:'trousers',colour:'#405976',silhouette:'straight',length:'full'} };
-  const service = createGenerationService({ storageDir, env:{ MODEL_3D_MODEL:'gpt-5.6-terra', OPENAI_API_KEY:'key', MESHY_API_KEY:'paid-key' }, fetchImpl:async(url, options) => { calls.push(String(url)); request=JSON.parse(options.body); return response({choices:[{message:{content:JSON.stringify(spec)}}]}); } });
+  const service = createGenerationService({ storageDir, env:{ VISION_MODEL:'gpt-6-astra', OPENAI_API_KEY:'key', MESHY_API_KEY:'paid-key' }, fetchImpl:async(url, options) => { calls.push(String(url)); request=JSON.parse(options.body); return response({choices:[{message:{content:JSON.stringify(spec)}}]}); } });
   assert.equal((await service.state(context())).model.method,'openai-parametric');
   await service.start('model', context());
   const done=await eventually(async()=>{const state=await service.state(context());assert.equal(state.model.status,'succeeded');return state;});
   assert.equal(done.model.method,'openai-parametric'); assert.deepEqual(calls,['https://api.openai.com/v1/chat/completions']);
+  assert.equal(request.model,'gpt-5.6-terra');
   assert.equal(request.response_format.type,'json_schema'); assert.match(JSON.stringify(request.response_format),/top/); assert.match(request.messages[1].content,/original_attributes/); assert.doesNotMatch(request.messages[1].content,/data:image|base64/i);
   const body = JSON.parse((await fs.readFile(path.join(storageDir,'manifest.json'),'utf8'))); assert.doesNotMatch(JSON.stringify(body),/data:image/);
   await service.start('model', context()); assert.equal(calls.length,1);
@@ -143,4 +149,47 @@ test('OpenAI parametric 3D rejects arbitrary model output', async t => {
   const service=createGenerationService({storageDir,env:{VISION_MODEL:'gpt-5.6-terra',VISION_MODEL_API_KEY:'key',VISION_MODEL_BASE_URL:'https://api.openai.com/v1'},fetchImpl:async()=>response({choices:[{message:{content:'{"code":"rm -rf /"}'}}]})});
   await service.start('model',context());
   await eventually(async()=>{const state=await service.state(context());assert.equal(state.model.status,'failed');assert.equal(state.model.code,'INVALID_PROVIDER_OUTPUT');});
+});
+
+
+test('Terra preview includes both references and changing the generation model misses its cache', async t => {
+  const storageDir = await temporary(t); const requests = [];
+  const env = { VISION_MODEL: 'gpt-6-astra', VISION_API_KEY: 'legacy-key', VISION_API_URL: 'https://api.openai.com/v1/chat/completions' };
+  const service = createGenerationService({ storageDir, env, fetchImpl: async (url, options) => {
+    assert.equal(options.headers.authorization, 'Bearer legacy-key');
+    requests.push(JSON.parse(options.body)); return response(imageOutput());
+  } });
+  t.after(() => service.close());
+  await service.start('image', context());
+  await eventually(async () => assert.equal((await service.state(context())).image.status, 'succeeded'));
+  await service.start('preview', context(), { image });
+  await eventually(async () => assert.equal((await service.state(context())).preview.status, 'succeeded'));
+  assert.equal(requests[1].model, 'gpt-5.6-terra');
+  assert.equal(requests[1].input[0].content.filter(item => item.type === 'input_image').length, 2);
+  assert.match(requests[1].input[0].content[0].text, /featureless face/);
+  await service.close();
+  const changed = createGenerationService({ storageDir, env: { ...env, GENERATION_MODEL: 'another-configured-model' } });
+  t.after(() => changed.close());
+  const state = await changed.state(context());
+  assert.equal(state.preview.status, 'idle'); assert.equal(state.image.status, 'idle');
+});
+
+test('incomplete, refused and missing image-tool results fail without an automatic paid retry', async t => {
+  const root = await temporary(t);
+  const invalid = [
+    { ...imageOutput(), status: 'incomplete' },
+    { status: 'completed', output: [{ type: 'message', content: [{ type: 'refusal', refusal: 'Cannot generate' }] }] },
+    { status: 'completed', output: [{ type: 'image_generation_call', status: 'failed' }] },
+  ];
+  for (let i = 0; i < invalid.length; i++) {
+    let calls = 0;
+    const service = createGenerationService({ storageDir: path.join(root, String(i)), env: { OPENAI_API_KEY: 'test' }, fetchImpl: async () => { calls++; return response(calls === 1 ? invalid[i] : imageOutput()); } });
+    t.after(() => service.close());
+    await service.start('preview', context(), { image });
+    await eventually(async () => { const state = await service.state(context()); assert.equal(state.preview.status, 'failed'); assert.equal(state.preview.code, 'INVALID_PROVIDER_OUTPUT'); });
+    await service.start('preview', context(), { image }); assert.equal(calls, 1);
+    await service.start('preview', context(), { image, retry: true });
+    await eventually(async () => assert.equal((await service.state(context())).preview.status, 'succeeded'));
+    assert.equal(calls, 2);
+  }
 });

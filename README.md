@@ -23,6 +23,11 @@ VISION_MODEL_BASE_URL=https://api.openai.com/v1
 VISION_MODEL=gpt-5.6-terra
 VISION_MODEL_API_KEY=your-private-key
 VISION_TIMEOUT_MS=45000
+GENERATION_MODEL=gpt-5.6-terra
+MODEL_3D_PROVIDER=openai
+MODEL_3D_MODEL=gpt-5.6-terra
+IMAGE_MODEL=gpt-image-1.5
+IMAGE_TIMEOUT_MS=180000
 ```
 
 `VISION_API_URL` (complete chat-completions endpoint) and `VISION_API_KEY` remain supported for compatibility with the starter. Prefer the variables above. Keys stay server-side; `.env` is ignored. Missing credentials, unavailable models and provider failures produce an error with retry, never fixed recommendations in the live upload flow.
@@ -35,7 +40,7 @@ VISION_TIMEOUT_MS=45000
 - One to three distinct AI-selected complementary pieces from the local catalogue (original illustrations plus reviewed, rights-cleared photos — see below). Every outfit contains a top and bottom, labels **Your item** and **Suggested pairing**, and includes a short explanation.
 - Original photo displayed unchanged with `object-fit: contain`. Suggested images are explicitly illustrative; no product availability or ownership is implied.
 - Separate, clearly labelled prepared sample, accessible loading/errors, request timeouts, retry, and stale-request protection.
-- Automatic garment image generation beside the uploaded image, **Find similar** product results, and **Preview outfit → Explore in 3D**. 3D defaults to OpenAI-assisted garment parameters and a local simplified GLB; Meshy is optional. Generated assets are cached, while original uploads remain transient. See [feature setup](FEATURE_SETUP.md) and [feature verification](FEATURE_VERIFICATION.md).
+- Automatic garment image generation beside the uploaded image, **Find similar** product results, and **Preview outfit → Explore in 3D**. 2D uses Terra with the image-generation tool. 3D defaults to Terra-assisted garment parameters and a local simplified GLB; Meshy is optional. Generated assets are cached, while original uploads remain transient. See [feature setup](FEATURE_SETUP.md) and [feature verification](FEATURE_VERIFICATION.md).
 
 `data/catalogue.mjs` exports the single catalogue array the server recommends from: 8 original SVG illustrations authored for heyTwin under the repository's MIT licence, plus any imported photo whose record in `data/catalogue-items.json` a human has reviewed and approved. The model is only ever shown item IDs, colours, patterns and descriptions — it never receives or returns an image URL, so it cannot fabricate one or point at a garment outside the catalogue. See [CATALOGUE.md](CATALOGUE.md) for how the photo catalogue is collected, reviewed and rebuilt (`npm run catalogue:build`), its source configuration (`data/sources.json`), and the import report (`data/catalogue-report.md`).
 
