@@ -22,12 +22,14 @@ Add values to `.env` locally and restart the server. Keep the existing vision/st
 | `MODEL_3D_PROVIDER` | Defaults to `openai`. Only explicit `meshy` enables paid Meshy jobs. Having a Meshy key alone never enables them. |
 | `MODEL_3D_MODEL` | Defaults to `GENERATION_MODEL`, then `gpt-5.6-terra`; never inherits `VISION_MODEL`. Must support structured JSON output. |
 | `MODEL_3D_API_KEY` | Optional separate OpenAI key; otherwise reuses the image/OpenAI key, or the vision key when its origin is official OpenAI. |
-| `SERPAPI_TIMEOUT_MS` | Defaults to 25000; bounded to 10000–45000 ms. |
+| `SERPAPI_TIMEOUT_MS` | Defaults to 60000; bounded to 10000–90000 ms. The browser allows time for visual search plus text fallback. |
 | `MESHY_API_KEY` | Optional. Create in [Meshy API settings](https://www.meshy.ai/settings/api); see [authentication](https://docs.meshy.ai/en/api/authentication). |
 | `MESHY_TIMEOUT_MS` | Per-request deadline, default 30000. |
 | `MESHY_POLL_MS`, `MESHY_MAX_POLLS` | Defaults 5000 and 120 (a bounded approximately 10-minute window). A timed-out known task is checked again on explicit retry without submitting a duplicate job. |
 
-Missing credentials produce setup states; normal use never silently receives fixture products or mannequin models. Visual search uses only the isolated generated suggestion. Text fallback uses structured garment details, including before image generation. Products have source-provided links and prices only; delivery, availability, and exact matches are not promised.
+Missing credentials produce setup states; normal use never silently receives fixture products or mannequin models. **Find similar** checks the isolated generated suggestion with the existing vision provider, then searches with confident visible attributes: garment type, colour, sleeve length, neckline, button front, silhouette and fabric construction. This works on localhost without `PUBLIC_ASSET_ORIGIN`: the server sends the saved generated image as a data URL to the vision provider and sends text keywords to SerpApi. The original upload is never sent for similar-product search. The first image check uses vision API credits; sanitized extracted attributes are cached in `data/search-profiles` by image bytes, model and prompt version. No additional key is required beyond the existing vision and SerpApi configuration.
+
+If no generated image is ready or image checking fails, search uses the suggestion's description and design attributes. The card shows the query, whether image details were checked, and any fallback message. Public HTTPS hosting additionally enables Lens search. Filters distinguish shirts, T-shirts and knitwear and reject explicit sleeve, neckline and closure contradictions. Unspecified listing details remain unverified and are not claimed as matches. Authentication, request-limit, timeout, connection and provider-response failures have distinct safe error codes; raw provider errors and credential-bearing URLs are never logged. Products have source-provided links and prices only; delivery, availability, and exact matches are not promised.
 
 Image requests use `store: false`, force a single image-tool result, and keep original references out of the local manifest. The cache includes both the Terra model and image-tool settings, so changing either creates a separate cache entry.
 

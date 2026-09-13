@@ -181,3 +181,27 @@ test('images start automatically, preserve the upload, and failed requests wait 
     expect(Math.abs(suggestedBox.y - ownBox.y)).toBeLessThan(2);
   }
 });
+
+test('similar search shows its description, loading state, and actionable failure before retrying', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/api/find-similar', async route => {
+    calls++;
+    await new Promise(resolve => setTimeout(resolve, 600));
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(calls === 1
+      ? { status: 'failed', method: 'text', query: 'indigo straight leg jeans', code: 'SEARCH_TIMEOUT', products: [], message: 'Product search took too long. Please try again.' }
+      : { status: 'succeeded', method: 'text', query: 'indigo straight leg jeans', products: [], source_state: 'sample', search_basis: 'generated_image', image_checked_fields: ['garment_type', 'colour'], message: 'No similar pieces were found.' }) });
+  });
+  await uploadPairings(page, 'Search failure regression fixture');
+  const first = card(page, 0);
+  await first.locator('[data-action="similar"]').click();
+  await expect(first.locator('.similar-panel')).toContainText('Looking for similar pieces');
+  await expect(first.locator('[data-action="similar"]')).toBeDisabled();
+  await expect(first.locator('.similar-panel')).toContainText('Product search took too long');
+  await expect(first.locator('.similar-query')).toHaveText('Search: indigo straight leg jeans');
+  await expect(first.locator('[data-action="similar"]')).toHaveText('Retry similar search');
+  await first.locator('[data-action="similar"]').click();
+  await expect(first.locator('.similar-panel')).toContainText('No close matches');
+  await expect(first.locator('.similar-panel')).toContainText('Search details checked against the generated garment image.');
+  await expect(first.locator('.similar-panel')).not.toContainText('No similar pieces were found.');
+  expect(calls).toBe(2);
+});

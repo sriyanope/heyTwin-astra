@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-09-13T05:46:03.939Z",
+  "diagnostics": [
+    {
+      "engine": "google_shopping",
+      "query": "olive tapered trousers",
+      "error_name": "AbortError",
+      "elapsed_ms": 25006
+    }
+  ],
+  "result": {
+    "status": "failed",
+    "products": [],
+    "method": "text",
+    "query": "olive tapered trousers",
+    "code": "SEARCH_TIMEOUT",
+    "message": "Product search took too long. Please try again.",
+    "source_state": "live"
+  }
+}

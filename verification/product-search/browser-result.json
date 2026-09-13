@@ -1,0 +1,25 @@
+{
+  "listings_rendered": 6,
+  "search_query": "olive tapered trousers",
+  "source": "saved real SerpApi response; local controlled upload/styling",
+  "page_errors": [],
+  "thumbnails": {
+    "loaded": 6,
+    "pending": 0
+  },
+  "mobile_overflow": false,
+  "link_checks": [
+    {
+      "title": "Levi's Xx Chino Pants Mens 33 Olive Tapered Flat Front Cotton Stretch",
+      "status": 200,
+      "page_title": "Levi's Xx Chino Pants Mens 33 Olive Tapered Flat Front Cotton Stretch",
+      "blocked": false
+    },
+    {
+      "title": "Express Womens High Rise Ankle Pleated Tapered Pants Olive Green 10s",
+      "status": 200,
+      "page_title": "Express Womens High Rise Ankle Pleated Tapered Pants Olive Green 10s",
+      "blocked": false
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "checked_at": "2026-09-13T05:47:16.832Z",
+  "diagnostics": [
+    {
+      "engine": "google_shopping",
+      "query": "olive tapered trousers",
+      "http_status": 200,
+      "provider_error": null,
+      "shopping_results": 40,
+      "response_fields": [
+        "search_metadata",
+        "search_parameters",
+        "search_information",
+        "shopping_results",
+        "categorized_shopping_results",
+        "filters"
+      ],
+      "elapsed_ms": 2765
+    }
+  ],
+  "result": {
+    "status": "succeeded",
+    "products": [
+      {
+        "title": "Levi's Xx Chino Pants Mens 33 Olive Tapered Flat Front Cotton Stretch",
+        "retailer": "eBay - girlpop",
+        "url": "https://www.google.com/search?ibp=oshop&q=olive%20tapered%20trousers&prds=productid:9535085184559486942,headlineOfferDocid:9535085184559486942,imageDocid:14108894778893923345,rds:PC_2026596633833047659|PROD_PC_2026596633833047659,pvt:a&hl=en&gl=us&udm=28",
+        "price": "$28.49",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRGXMk3y04-fIl9LLXZI69CSAQfW_PbbMem374AZX9L5fGJWR7YHv8xJRfrhXJ7sUHh6nXhNsZNXGVHOE5sN6Hd0_NbhsGl4NPti1MaRHRS9SEz0VMrUAgP8g",
+        "match_notes": [
+          "colour",
+          "silhouette"
+        ]
+      },
+      {
+        "title": "Express Womens High Rise Ankle Pleated Tapered Pants Olive Green 10s",
+        "retailer": "eBay - kcstylesupply",
+        "url": "https://www.google.com/search?ibp=oshop&q=olive%20tapered%20trousers&prds=productid:1078479566211663525,headlineOfferDocid:1078479566211663525,imageDocid:14535132385826304452,pvt:a&hl=en&gl=us&udm=28",
+        "price": "$21.75",
+        "thumbnail": "https://serpapi.com/searches/6aa63887a8dce680bfa4ea79/images/CTeTg52Q9mTv22k1vQn9Ek5vVqaa0_e9kwI_BjOoRN5aWIv0LcYX2zSoBAlViHXYLB5223csf-BD0P17lZAmtw.webp",
+        "match_notes": [
+          "colour",
+          "silhouette"
+        ]
+      },
+      {
+        "title": "Paige Mayslie Womens Jogger Pants Olive Green Cargo Cropped Stretch",
+        "retailer": "eBay - teroterouy",
+        "url": "https://www.google.com/search?ibp=oshop&q=olive%20tapered%20trousers&prds=productid:16426319251858343730,headlineOfferDocid:16426319251858343730,imageDocid:2543764893183839973,rds:PC_16091730729640835790|PROD_PC_16091730729640835790,pvt:a&hl=en&gl=us&udm=28",
+        "price": "$38.99",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRPue6slv40jAODYBVQ7RvQmAaGs2rwyoEiqOjyeBkDAT_9sUYbC0NM2UD7mLyoWRrr9NJLxyG0DUp-h6rVPoyzs_iDZ9do1dGruhyhfteP2pYZTRg8gh4oNQ",
+        "match_notes": [
+          "colour"
+        ]
+      },
+      {
+        "title": "Liverpool Los Angeles Tie Waist Ankle Wide Leg Pants in Martini Olive at Nordstrom, Size Small",
+        "retailer": "Nordstrom",
+        "url": "https://www.google.com/search?ibp=oshop&q=olive%20tapered%20trousers&prds=productid:14361346041411742135,headlineOfferDocid:14361346041411742135,imageDocid:12788588627414298961,pvt:a&hl=en&gl=us&udm=28",
+        "price": "$98.00",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRLhHeymNM8AK77rNi1dvBXhLy-7HBZJMKDwgzm8GY-OCPCvO_RN3IXLbTn5hRmfU58xriDKhVT1W2uy9XrxUicpruzv16sReZKPXV6izdSIIRYxJpCPWF47A",
+        "match_notes": [
+          "colour"
+        ]
+      },
+      {
+        "title": "Paige Pants & Jumpsuits | Paige Olive Green Cargo Jogger Pants | Color: Green | Size: 24 | Jennifer_Anton's Closet",
+        "retailer": "Poshmark",
+        "url": "https://www.google.com/search?ibp=oshop&q=olive%20tapered%20trousers&prds=productid:16275866158347480836,headlineOfferDocid:16275866158347480836,imageDocid:16800102362948831959,pvt:a&hl=en&gl=us&udm=28",
+        "price": "$25.00",
+        "thumbnail": "https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQOt9CxX6s9Hdz5Dd8iRjBFlaBNoksaILdP2xr2Mnd6CYyj-kewlYpbqTPuqtGS5ze8XkfILbQW6H7q6N1fJAqvXYOy2PzkjHZ6FhALxMam",
+        "match_notes": [
+          "colour"
+        ]
+      },
+      {
+        "title": "Liverpool Tie Waist Ankle Women Pants - Martini Olive",
+        "retailer": "Editorialist",
+        "url": "https://www.google.com/search?ibp=oshop&q=olive%20tapered%20trousers&prds=productid:12374592325717115419,headlineOfferDocid:12374592325717115419,imageDocid:1119589430548094257,rds:PC_11880424832905496795|PROD_PC_11880424832905496795,pvt:a&hl=en&gl=us&udm=28",
+        "price": "$98.00",
+        "thumbnail": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQq9oUUMsYLHXpKbNGYe685fEOmf_iMCA0crWZbT_vIYwyrHEwS57zpEH4J9mTYkNth08moSvIZI_2EPgow2I-F3EzWrZoOxKcTV_p_y3OW7nIg6eR83MpA",
+        "match_notes": [
+          "colour"
+        ]
+      }
+    ],
+    "method": "text",
+    "query": "olive tapered trousers",
+    "source_state": "live"
+  }
+}

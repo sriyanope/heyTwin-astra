@@ -43,7 +43,7 @@ async function api(route, payload, signal) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
     // Shopping can follow a failed visual search: allow both bounded server requests.
-    signal: signal || AbortSignal.timeout(route === 'find-similar' ? 95000 : 30000),
+    signal: signal || AbortSignal.timeout(route === 'find-similar' ? 245000 : 30000),
   });
   const data = await response.json().catch(() => {
     throw new Error("We couldn’t read the response. Please try again.");
@@ -322,7 +322,7 @@ function render(outfits, sample = false, focusAction) {
         ["image", jobText(imageJob, "image")],
         [
           "similar",
-          outfit.similar?.status === "failed"
+          outfit.similar?.status === "pending" ? "Finding similar…" : outfit.similar?.status === "failed"
             ? "Retry similar search"
             : "Find similar",
         ],
@@ -368,6 +368,14 @@ function similarPanel(similar) {
   const section = node("section", "similar-panel");
   section.setAttribute("aria-label", "Similar pieces");
   section.append(node("h4", "", "Similar pieces"));
+  if (similar.query) section.append(node('p', 'similar-query', `Search: ${similar.query}`));
+  if (similar.search_basis === 'generated_image') section.append(node('p', 'similar-message', 'Search details checked against the generated garment image.'));
+  if (similar.search_note) section.append(node('p', 'similar-message', similar.search_note));
+  if (similar.status === 'pending') {
+    section.setAttribute('aria-busy', 'true');
+    section.append(node('p', 'similar-message', 'Looking for similar pieces… This can take about a minute.'));
+    return section;
+  }
   section.append(node('p', 'similar-message', similar.source_state === 'sample' ? 'Prepared test listings · not live products.' : 'Similar suggestions, not exact matches. Availability and delivery are unverified.'));
   if (similar.status === "setup_required" || similar.status === "failed") {
     section.append(
@@ -382,7 +390,7 @@ function similarPanel(similar) {
     );
     return section;
   }
-  if (similar.message)
+  if (similar.message && similar.products?.length)
     section.append(node("p", "similar-message", similar.message));
   const products = Array.isArray(similar.products)
     ? similar.products.slice(0, 6)
@@ -551,15 +559,22 @@ $("#recommendations").addEventListener("click", async (event) => {
   button.setAttribute('aria-busy', 'true');
   try {
     if (action === "similar") {
+      const retry = outfit.similar?.status === 'failed';
+      outfit.similar = { status: 'pending', query: suggested(outfit)?.description || '' };
+      render(currentOutfits);
       outfit.similar = await api("find-similar", {
         garment_id: garmentId,
         pairing_id: id,
-        ...(outfit.similar?.status === "failed" ? { retry: true } : {}),
+        ...(retry ? { retry: true } : {}),
       });
       if (version === revision) { cardActions.delete(`${id}:${action}`); render(currentOutfits, false, { pairingId: id, action }); }
     }
   } catch (error) {
-    if (version === revision) status(error.message, true);
+    if (version === revision) {
+      outfit.similar = { status: 'failed', query: suggested(outfit)?.description || '', message: error.message };
+      cardActions.delete(`${id}:${action}`);
+      render(currentOutfits, false, { pairingId: id, action });
+    }
   } finally {
     cardActions.delete(`${id}:${action}`);
     button.removeAttribute('aria-busy');

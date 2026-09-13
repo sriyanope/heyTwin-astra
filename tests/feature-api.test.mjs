@@ -4,6 +4,10 @@ import { once } from 'node:events';
 import { createApp } from '../server.mjs';
 import { catalogue } from '../data/catalogue.mjs';
 import { garmentAttributes, publicImageURL } from '../lib/pairings.mjs';
+import { createSearchProfile } from '../lib/search-profile.mjs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=';
 const confirmed = { category: 'top', colour: 'ivory', pattern: 'floral', description: 'Ivory floral peplum blouse' };
@@ -11,7 +15,7 @@ const analysis = { usable: true, attributes: Object.fromEntries(['category', 'co
 const provider = async (prompt, image) => image ? analysis : { outfits: ['indigo-jeans', 'olive-trousers', 'black-skirt'].map(id => ({ catalogue_item_id: id, name: id, explanation: 'A simple silhouette balances the floral blouse.', confidence: .9 })) };
 const empty = () => Object.fromEntries(['image', 'preview', 'model'].map(kind => [kind, { status: 'idle', source_state: 'live' }]));
 
-async function appFor(t) {
+async function appFor(t, options = {}) {
   const calls = [], searches = [];
   const states = new Map();
   const generation = {
@@ -23,9 +27,9 @@ async function appFor(t) {
       states.set(context.pairing_id, state);
       return state;
     },
-    asset: async name => name === 'test-image.png' ? { data: Buffer.from(png.split(',')[1], 'base64'), contentType: 'image/png' } : null,
+    asset: async name => name === 'test-image.png' ? { data: options.generatedBytes || Buffer.from(png.split(',')[1], 'base64'), contentType: 'image/png' } : null,
   };
-  const app = createApp({ env: { PUBLIC_ASSET_ORIGIN: 'https://heytwin.example.com' }, provider, generation, productSearch: { search: async options => { searches.push(options); return { products: [], status: 'succeeded', method: 'text' }; } } }).listen(0, '127.0.0.1');
+  const app = createApp({ env: options.env || { PUBLIC_ASSET_ORIGIN: 'https://heytwin.example.com' }, provider, generation, ...(options.searchProfile ? { searchProfile: options.searchProfile } : {}), productSearch: { search: async options => { searches.push(options); return { products: [], status: 'succeeded', method: 'text' }; } } }).listen(0, '127.0.0.1');
   await once(app, 'listening');
   t.after(() => new Promise(resolve => app.close(resolve)));
   const url = `http://127.0.0.1:${app.address().port}`;
@@ -93,6 +97,33 @@ test('public image URL only combines public HTTPS origin and constrained generat
   for (const origin of ['http://example.com', 'https://localhost', 'https://127.0.0.1', 'https://10.0.0.1', 'https://user:secret@example.com', 'https://example.com/path']) assert.equal(publicImageURL(origin, '/generated/test.png'), undefined);
   assert.equal(publicImageURL('https://example.com', '/catalogue/test.png'), undefined);
   assert.equal(publicImageURL('https://example.com', '/generated/test.glb'), undefined);
+});
+
+test('localhost search checks only the registered generated image and reuses its visual attributes', async t => {
+  const storageDir = await fs.mkdtemp(path.join(os.tmpdir(), 'heytwin-search-api-'));
+  t.after(() => fs.rm(storageDir, { recursive: true, force: true }));
+  const generatedBytes = Buffer.from('distinct generated garment fixture');
+  const checks = [];
+  const searchProfile = createSearchProfile({ storageDir, provider: async (prompt, image) => {
+    checks.push(image);
+    return { usable: true, attributes: { garment_type: { value: 'jeans', confidence: .99 }, colour: { value: 'dark blue', confidence: .95 } } };
+  } });
+  const { post, prepare, searches } = await appFor(t, { searchProfile, generatedBytes, env: {} });
+  const { garment_id, outfits } = await prepare();
+  const payload = { garment_id, pairing_id: outfits[0].pairing_id, image: png, imageUrl: 'https://untrusted.example/image.png', attributes: { colour: 'red' } };
+  await post('find-similar', payload);
+  assert.equal(checks.length, 0);
+  await post('generate-pairing-image', payload);
+  for (let i = 0; i < 2; i++) {
+    const result = await post('find-similar', payload);
+    assert.equal(result.status, 200);
+    assert.equal(result.data.search_basis, 'generated_image');
+    assert.deepEqual(result.data.image_checked_fields, ['garment_type', 'colour']);
+    assert.equal(searches.at(-1).attributes.colour, 'dark blue');
+    assert.equal(searches.at(-1).imageUrl, undefined);
+  }
+  assert.deepEqual(checks, [`data:image/png;base64,${generatedBytes.toString('base64')}`]);
+  assert.notEqual(checks[0], png);
 });
 
 test('failed generated-asset storage cannot break the original recommendation response', async t => {

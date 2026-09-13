@@ -7,6 +7,7 @@ import { catalogue } from './data/catalogue.mjs';
 import { digest, pairingContext, publicImageURL } from './lib/pairings.mjs';
 import { createGenerationService } from './lib/generation.mjs';
 import { createProductSearch } from './lib/product-search.mjs';
+import { createSearchProfile } from './lib/search-profile.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
@@ -141,6 +142,7 @@ function validateAttributes(attributes) {
 export function createApp({ env = loadEnv(), provider = createProvider(env), now = Date.now,
   generation = createGenerationService({ env, now, storageDir: path.join(root, 'data/generated') }),
   productSearch = createProductSearch({ env, now }),
+  searchProfile = createSearchProfile({ provider, enabled: Boolean(env.VISION_MODEL && (env.VISION_MODEL_API_KEY || env.VISION_API_KEY)), model: `${env.VISION_MODEL || ''}:${env.VISION_API_URL || env.VISION_MODEL_BASE_URL || ''}`, now, storageDir: path.join(root, 'data/search-profiles') }),
 } = {}) {
   const sessions = new Map();
   const limits = new Map();
@@ -199,7 +201,12 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
           if (pathname === '/api/find-similar') {
             const state = await generationState(context);
             const imageUrl = state.image.status === 'succeeded' ? publicImageURL(env.PUBLIC_ASSET_ORIGIN, state.image.asset_url) : undefined;
-            return sendJson(response, 200, await productSearch.search({ attributes: context.attributes, imageUrl }));
+            let asset;
+            const filename = state.image.status === 'succeeded' && /^\/generated\/[a-zA-Z0-9_-]+\.(png|webp|jpe?g)$/.test(state.image.asset_url || '') ? state.image.asset_url.slice('/generated/'.length) : null;
+            if (filename) { try { asset = await generation.asset(filename); } catch {} }
+            const profile = await searchProfile.resolve({ attributes: context.attributes, asset });
+            const result = await productSearch.search({ attributes: profile.attributes, imageUrl });
+            return sendJson(response, 200, { ...result, search_basis: profile.basis, image_checked_fields: profile.checked_fields, ...(profile.note ? { search_note: profile.note } : {}) });
           }
           let image;
           if (pathname === '/api/preview-outfit') {
