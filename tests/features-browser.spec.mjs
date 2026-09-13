@@ -14,7 +14,7 @@ async function uploadPairings(page, description) {
 }
 const card = (page, index) => page.locator('.outfit-card').nth(index);
 
-test('all three pairings generate isolated images, show honest product fixtures, preview and rotate their own GLB', async ({ page }) => {
+test('all three pairings generate isolated images, show honest product fixtures, and retain their own 2D previews', async ({ page }) => {
   test.setTimeout(120000);
   const errors = [], failed = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -34,30 +34,8 @@ test('all three pairings generate isolated images, show honest product fixtures,
     await expect(page.locator('#outfit-dialog')).toBeVisible();
     if (await page.locator('#preview-controls button').count()) await page.locator('#preview-controls button').click();
     await expect(page.locator('.outfit-preview-image')).toBeVisible({ timeout: 12000 });
-    await expect(page.locator('#model-controls button')).toHaveText('Explore in 3D');
-    await page.locator('#model-controls button').click();
-    const viewer = page.locator('model-viewer');
-    await expect(viewer).toBeVisible({ timeout: 12000 });
-    await expect.poll(() => viewer.evaluate(element => Boolean(element.loaded)), { timeout: 15000 }).toBe(true);
-    sources.push(await viewer.getAttribute('src'));
-    expect(sources[index]).toBe(`/generated/fixture-${['jeans', 'trousers', 'skirt'][index]}-model.glb`);
-    if (index === 0) {
-      await page.locator('#outfit-dialog').screenshot({ path: 'test-results/outfit-preview-desktop.png' });
-      await viewer.scrollIntoViewIfNeeded();
-      const before = await viewer.evaluate(element => element.getCameraOrbit().theta);
-      await viewer.screenshot({ path: 'test-results/model-front.png' });
-      const box = await viewer.boundingBox();
-      await page.mouse.move(box.x + box.width * .65, box.y + box.height * .55);
-      await page.mouse.down();
-      await page.mouse.move(box.x + box.width * .2, box.y + box.height * .55, { steps: 15 });
-      await page.mouse.up();
-      await expect.poll(() => viewer.evaluate(element => element.getCameraOrbit().theta)).not.toBe(before);
-      await viewer.screenshot({ path: 'test-results/model-dragged.png' });
-      await viewer.evaluate(element => { element.cameraOrbit = '180deg 75deg 105%'; element.jumpCameraToGoal(); });
-      await viewer.screenshot({ path: 'test-results/model-back.png' });
-      await page.getByRole('button', { name: 'Reset view' }).click();
-      await expect.poll(() => viewer.evaluate(element => Math.abs(element.getCameraOrbit().theta)), { timeout: 4000 }).toBeLessThan(.02);
-    }
+    await expect(page.locator('model-viewer, #model-controls')).toHaveCount(0);
+    sources.push(await page.locator('.outfit-preview-image').getAttribute('src'));
     await page.getByRole('button', { name: 'Close outfit preview' }).click();
     await expect(card(page, index).locator('[data-action="preview"]')).toBeFocused();
   }
@@ -128,25 +106,6 @@ test('refresh reupload recovers generated assets without new jobs; reset ignores
   await expect(page.locator('.outfit-card')).toHaveCount(0);
 });
 
-test('OpenAI-parametric mode explores a simplified 3D model without first generating a 2D preview', async ({ page }) => {
-  test.setTimeout(45000);
-  await uploadPairings(page, 'Parametric 3D browser fixture');
-  await card(page, 0).locator('[data-action="preview"]').click();
-
-  await expect(page.locator('.model-note')).toContainText('simplified 3D sketch');
-  await expect(page.locator('.model-note')).toContainText('does not predict fit');
-  await expect(page.locator('.outfit-preview-image')).toHaveCount(0);
-
-  const explore = page.locator('#model-controls button', { hasText: 'Explore in 3D' });
-  await expect(explore).toBeEnabled();
-  await explore.click();
-
-  const viewer = page.locator('model-viewer');
-  await expect(viewer).toBeVisible({ timeout: 12000 });
-  await expect.poll(() => viewer.getAttribute('src'), { timeout: 12000 }).toMatch(/\/generated\/fixture-jeans-model\.glb$/);
-  await expect.poll(() => viewer.evaluate(element => Boolean(element.loaded)), { timeout: 15000 }).toBe(true);
-});
-
 test('images start automatically, preserve the upload, and failed requests wait for manual retry', async ({ page }) => {
   test.setTimeout(45000);
   const creates = new Map();
@@ -204,4 +163,33 @@ test('similar search shows its description, loading state, and actionable failur
   await expect(first.locator('.similar-panel')).toContainText('Search details checked against the generated garment image.');
   await expect(first.locator('.similar-panel')).not.toContainText('No similar pieces were found.');
   expect(calls).toBe(2);
+});
+test('season and gender are selectable, submitted and reset; 3D routes are absent',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const buffer=await sharp('public/catalogue/blue-shirt.svg').png().toBuffer();
+ await page.goto('/');
+ await page.locator('#image-input').setInputFiles({name:'shirt.png',mimeType:'image/png',buffer});
+ await page.locator('#identify-button').click();
+ await expect(page.locator('#details-panel')).toBeVisible();
+ await page.getByLabel('Seasonal colour palette').selectOption('summer-soft');
+ await page.getByLabel('Gender',{exact:true}).selectOption('woman');
+ await expect(page.locator('.season-chip')).toHaveCount(10);
+ await page.locator('#details-panel').screenshot({path:'test-results/seasonal-form-mobile.png'});
+ await page.setViewportSize({width:1440,height:1100});
+ await page.locator('#details-panel').screenshot({path:'test-results/seasonal-form-desktop.png'});
+ await page.setViewportSize({width:390,height:844});
+ const request=page.waitForRequest(r=>r.url().endsWith('/api/recommend-outfits'));
+ await page.locator('#recommend-button').click();
+ expect((await request).postDataJSON()).toMatchObject({season:'summer-soft',gender:'woman'});
+ await expect(page.locator('.outfit-card')).toHaveCount(3);
+ await expect(page.locator('.look-direction').first()).toContainText('Summer / Soft');
+ await page.locator('#results').screenshot({path:'test-results/seasonal-results-mobile.png'});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect((await page.request.post('/api/generate-outfit-model',{data:{}})).status()).toBe(404);
+ expect((await page.request.get('/vendor/model-viewer.min.js')).status()).toBe(404);
+ await page.locator('#another-button').click();
+ await expect(page.locator('#gender-preference')).toHaveValue('unspecified');
+ await expect(page.locator('#season-palette')).toHaveValue('auto');
+ await expect(page.locator('.season-chip')).toHaveCount(0);
+ expect(errors).toEqual([]);
 });

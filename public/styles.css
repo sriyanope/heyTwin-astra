@@ -661,8 +661,7 @@ p {
 .outfit-dialog::backdrop {
   background: rgb(3 48 72 / 0.56);
 }
-.dialog-bar,
-.model-heading {
+.dialog-bar {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -683,8 +682,7 @@ p {
   font-size: 26px;
   line-height: 1;
 }
-.preview-provenance,
-.model-note {
+.preview-provenance {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.55;
@@ -696,21 +694,18 @@ p {
   font-size: 13px;
   line-height: 1.45;
 }
-.preview-stage,
-.model-stage {
+.preview-stage {
   margin-top: 18px;
   padding: 16px;
   border: 2px solid var(--ink);
   border-radius: 14px;
   background: var(--surface);
 }
-.preview-stage h3,
-.model-stage h3 {
+.preview-stage h3 {
   margin: 0;
   font: 400 22px var(--font-heading);
 }
-.preview-image-wrap,
-.model-wrap {
+.preview-image-wrap {
   display: grid;
   place-items: center;
   min-height: 260px;
@@ -720,24 +715,20 @@ p {
   background: #edf0e7;
   text-align: center;
 }
-.preview-empty,
-.model-wrap > p {
+.preview-empty {
   max-width: 360px;
   margin: 20px;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
 }
-.outfit-preview-image,
-.model-wrap model-viewer {
+.outfit-preview-image {
   width: 100%;
   height: 360px;
   object-fit: contain;
   background: #edf0e7;
 }
-.model-heading .job-badge {
-  margin: 0;
-}
+
 @media (max-width: 520px) {
   .card-actions .small-button {
     flex: 1 1 100%;
@@ -750,12 +741,10 @@ p {
   .dialog-bar h2 {
     font-size: 28px;
   }
-  .preview-stage,
-  .model-stage {
+  .preview-stage {
     padding: 12px;
   }
-  .outfit-preview-image,
-  .model-wrap model-viewer {
+  .outfit-preview-image {
     height: 300px;
   }
   .product {
@@ -1206,3 +1195,20 @@ h3 {
   font-size: .9rem;
   line-height: 1.6;
 }
+
+/* Clothing colour notes sit on a quiet surface so the garments lead. */
+.style-choice #style-help { font-size: 12px; line-height: 1.6; color: var(--muted); font-weight: 400; }
+.look-direction { letter-spacing: .16em; color: #635A4F; margin-bottom: 12px; }
+.colour-story { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #DCD6CA; }
+.colour-token { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink); }
+.colour-dot { display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #0002; flex-shrink: 0; }
+.colour-caption { margin: 8px 0 0; font-size: 10px; color: #71675D; }
+.styling-tip { margin: 16px 0 0; font-size: 12px; line-height: 1.65; color: #635A4F; }
+.outfit-card .pieces, .outfit-card .piece + .piece { background: #F7F5F0; }
+.outfit-card .card-copy { background: #FFFEFA; }
+
+.preference-help { display:block; color:var(--muted); font-size:12px; line-height:1.5; margin-top:6px; }
+.season-swatches { display:flex; flex-wrap:wrap; gap:8px; }
+.season-swatches:empty { display:none; }
+.season-swatches .preference-help { flex-basis:100%; margin:0; }
+.season-chip { width:24px; height:24px; border-radius:5px; border:1px solid rgb(0 0 0 / .15); }

@@ -104,3 +104,33 @@ test('persistent connection failure has bounded retries; malformed HTTP JSON is 
   assert.equal(calls,2);
   await assert.rejects(createProvider(env,async()=>({ok:true,json:async()=>{throw new SyntaxError('html instead of JSON');}}),()=>{})('JSON'),error=>error.code==='INVALID_MODEL_OUTPUT');
 });
+
+
+test('style selection reaches the stylist and returns trusted colour notes for a new garment',async t=>{
+ let captured;let styleId='stockholm';
+ const post=await start(t,{provider:async(prompt,image)=>image?analysis():(captured=prompt,{outfits:[{...outfit('espresso-trousers'),style_id:styleId,styling_tip:'Keep the shirt untucked for an easy line.'}]})});
+ const {body:{garment_id}}=await post('/api/analyze-garment',{image:png});
+ await post('/api/confirm-garment',{garment_id,corrected_attributes:{category:'top',colour:'light blue',pattern:'solid',description:'Light blue shirt'}});
+ assert.equal((await post('/api/recommend-outfits',{garment_id,style:'unknown'})).status,400);
+ const result=await post('/api/recommend-outfits',{garment_id,style:'stockholm'});
+ assert.equal(result.status,200);assert.match(captured,/Requested direction: stockholm/);
+ assert.equal(result.body.outfits[0].style,'Stockholm');
+ assert.equal(result.body.outfits[0].colour_story[0].label,'light blue');
+ assert.equal(result.body.outfits[0].items[1].garment_attributes.material,'wool-blend suiting');
+ styleId='copenhagen';assert.equal((await post('/api/recommend-outfits',{garment_id,style:'stockholm'})).status,502);
+});
+test('season and gender are validated, forwarded and included in generation context',async t=>{
+ let captured;let palette='autumn-warm';
+ const post=await start(t,{provider:async(prompt,image)=>image?analysis():(captured=prompt,{outfits:[{...outfit('espresso-trousers'),palette_id:palette}]})});
+ const {body:{garment_id}}=await post('/api/analyze-garment',{image:png});
+ await post('/api/confirm-garment',{garment_id,corrected_attributes:{category:'top',colour:'blue',pattern:'solid',description:'Blue shirt'}});
+ for(const payload of [{season:'__proto__'},{gender:'invented'}]) assert.equal((await post('/api/recommend-outfits',{garment_id,...payload})).status,400);
+ const male=await post('/api/recommend-outfits',{garment_id,season:'autumn-warm',gender:'man'});
+ assert.equal(male.status,200);assert.match(captured,/Selected palette: autumn-warm/);assert.match(captured,/User selected Man/);
+ assert.equal(male.body.outfits[0].season,'autumn-warm');
+ assert.equal(male.body.outfits[0].items[1].garment_attributes.styling_gender,'man');
+ const female=await post('/api/recommend-outfits',{garment_id,season:'autumn-warm',gender:'woman'});
+ assert.notEqual(male.body.outfits[0].pairing_id,female.body.outfits[0].pairing_id);
+ palette='winter-clear';assert.equal((await post('/api/recommend-outfits',{garment_id,season:'autumn-warm'})).status,502);
+ assert.equal((await post('/api/generate-outfit-model',{garment_id})).status,404);
+});

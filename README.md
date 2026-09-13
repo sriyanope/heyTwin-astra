@@ -4,7 +4,7 @@ A small, mobile-first styling demo: upload one top or bottom, check the AI’s d
 
 ## Run
 
-Requires Node.js 22 or newer. Run `npm ci` to install the locally served 3D viewer and development tools.
+Requires Node.js 22 or newer. Run `npm ci` to install the development tools.
 
 ```sh
 cp .env.example .env  # only if .env does not already exist
@@ -24,8 +24,6 @@ VISION_MODEL=gpt-5.6-terra
 VISION_MODEL_API_KEY=your-private-key
 VISION_TIMEOUT_MS=45000
 GENERATION_MODEL=gpt-5.6-terra
-MODEL_3D_PROVIDER=openai
-MODEL_3D_MODEL=gpt-5.6-terra
 IMAGE_MODEL=gpt-image-1.5
 IMAGE_TIMEOUT_MS=180000
 ```
@@ -38,11 +36,12 @@ IMAGE_TIMEOUT_MS=180000
 - Vision identification of category, colour, pattern and visible description; unclear photos request a clearer image.
 - Mandatory confirmation with editable category, colour, pattern, description and optional occasion. Corrected attributes are authoritative in recommendation prompts.
 - One to three distinct AI-selected complementary pieces from the local catalogue (original illustrations plus reviewed, rights-cleared photos — see below). Every outfit contains a top and bottom, labels **Your item** and **Suggested pairing**, and includes a short explanation.
+- Stockholm quiet tailoring or Copenhagen playful styling, with twelve seasonal colour palettes from the supplied chart, optional user-selected gender, colour notes and garment styling tips. See [styling references](STYLING_REFERENCES.md).
 - Original photo displayed unchanged with `object-fit: contain`. Suggested images are explicitly illustrative; no product availability or ownership is implied.
 - Separate, clearly labelled prepared sample, accessible loading/errors, request timeouts, retry, and stale-request protection.
-- Automatic garment image generation beside the uploaded image, **Find similar** product results, and **Preview outfit → Explore in 3D**. 2D uses Terra with the image-generation tool. 3D defaults to Terra-assisted garment parameters and a local simplified GLB; Meshy is optional. Generated assets are cached, while original uploads remain transient. See [feature setup](FEATURE_SETUP.md) and [feature verification](FEATURE_VERIFICATION.md).
+- Automatic garment image generation beside the unchanged upload, **Find similar** product results and a **2D outfit preview**. Generated assets are cached; original uploads remain transient. The 3D feature is removed. See [feature setup](FEATURE_SETUP.md).
 
-`data/catalogue.mjs` exports the single catalogue array the server recommends from: 8 original SVG illustrations authored for heyTwin under the repository's MIT licence, plus any imported photo whose record in `data/catalogue-items.json` a human has reviewed and approved. The model is only ever shown item IDs, colours, patterns and descriptions — it never receives or returns an image URL, so it cannot fabricate one or point at a garment outside the catalogue. See [CATALOGUE.md](CATALOGUE.md) for how the photo catalogue is collected, reviewed and rebuilt (`npm run catalogue:build`), its source configuration (`data/sources.json`), and the import report (`data/catalogue-report.md`).
+`lib/catalogue.mjs` merges twelve new Scandinavian garment concepts with the base catalogue in `data/catalogue.mjs`: 20 original SVG illustrations authored for heyTwin under the repository's MIT licence, plus any imported photo whose record in `data/catalogue-items.json` a human has reviewed and approved. The model is only ever shown item IDs, colours, patterns and descriptions — it never receives or returns an image URL, so it cannot fabricate one or point at a garment outside the catalogue. See [CATALOGUE.md](CATALOGUE.md) for how the photo catalogue is collected, reviewed and rebuilt (`npm run catalogue:build`), its source configuration (`data/sources.json`), and the import report (`data/catalogue-report.md`).
 
 ## API and retention
 
@@ -53,7 +52,7 @@ The implementation follows the illustrative endpoints in `instructions/API_CONTR
 | `GET /health` | Returns service health and whether provider configuration is present (not a credential-validity check). |
 | `POST /api/analyze-garment` | `{ image: "data:image/jpeg;base64,..." }` → attributes, confidence, uncertainty, `garment_id`, `source_state`. |
 | `POST /api/confirm-garment` | `{ garment_id, corrected_attributes: { category, colour, pattern, description } }` |
-| `POST /api/recommend-outfits` | `{ garment_id, confirmed_attributes, occasion }` → `outfits`, with two ownership-tagged items each. Occasion is `casual`, `work`, `going_out` or null. |
+| `POST /api/recommend-outfits` | `{ garment_id, confirmed_attributes, occasion, style?, season?, gender? }` → `outfits`, with two ownership-tagged items each. Occasion is `casual`, `work`, `going_out` or null. |
 | `POST /api/discard-garment` | `{ garment_id }` → removes temporary attributes on reset. |
 
 Original photos stay in browser memory and transient provider requests; heyTwin never saves or logs the uploads. Creating an outfit preview sends the original to the image service again. Analysis, corrected attributes, an image hash and authorized pairing contexts are held server-side for 15 minutes, extended by feature actions, or until reset. Generated images and GLBs persist in `data/generated`; reset does not delete those derived assets. Provider data handling follows its own policies. Refreshing loses the original photo; reuploading the same photo with the same confirmed details recovers matching cached assets. No accounts or browser local storage.

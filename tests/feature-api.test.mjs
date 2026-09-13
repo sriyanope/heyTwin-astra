@@ -13,7 +13,7 @@ const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCA
 const confirmed = { category: 'top', colour: 'ivory', pattern: 'floral', description: 'Ivory floral peplum blouse' };
 const analysis = { usable: true, attributes: Object.fromEntries(['category', 'colour', 'pattern'].map(key => [key, { value: confirmed[key], confidence: .9 }])), description: confirmed.description, confidence: .9, uncertainty: { level: 'low', note: '' } };
 const provider = async (prompt, image) => image ? analysis : { outfits: ['indigo-jeans', 'olive-trousers', 'black-skirt'].map(id => ({ catalogue_item_id: id, name: id, explanation: 'A simple silhouette balances the floral blouse.', confidence: .9 })) };
-const empty = () => Object.fromEntries(['image', 'preview', 'model'].map(kind => [kind, { status: 'idle', source_state: 'live' }]));
+const empty = () => Object.fromEntries(['image', 'preview'].map(kind => [kind, { status: 'idle', source_state: 'live' }]));
 
 async function appFor(t, options = {}) {
   const calls = [], searches = [];

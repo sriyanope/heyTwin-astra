@@ -1,9 +1,10 @@
+import { stylingPrompt, styleDirections, colourStory, seasonalPalettes, genderDirections } from './lib/styling.mjs';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { catalogue } from './data/catalogue.mjs';
+import { catalogue } from './lib/catalogue.mjs';
 import { digest, pairingContext, publicImageURL } from './lib/pairings.mjs';
 import { createGenerationService } from './lib/generation.mjs';
 import { createProductSearch } from './lib/product-search.mjs';
@@ -148,7 +149,7 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
   const limits = new Map();
   async function generationState(context) {
     try { return await generation.state(context); }
-    catch { return Object.fromEntries(['image', 'preview', 'model'].map(kind => [kind, { status: 'failed', code: 'ASSET_STORAGE_UNAVAILABLE', message: 'Preview storage is unavailable. Your pairing is still here.', source_state: 'live' }])); }
+    catch { return Object.fromEntries(['image', 'preview'].map(kind => [kind, { status: 'failed', code: 'ASSET_STORAGE_UNAVAILABLE', message: 'Preview storage is unavailable. Your pairing is still here.', source_state: 'live' }])); }
   }
   function sweep() {
     for (const [id, session] of sessions) if (session.expires <= now()) sessions.delete(id);
@@ -187,7 +188,7 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
           sessions.set(garment_id, { analysis, image_hash: digest(image), expires: now() + sessionTTL });
           return sendJson(response, 200, analysis);
         }
-        const featureRoutes = ['/api/pairing-state', '/api/generate-pairing-image', '/api/preview-outfit', '/api/generate-outfit-model', '/api/find-similar'];
+        const featureRoutes = ['/api/pairing-state', '/api/generate-pairing-image', '/api/preview-outfit', '/api/find-similar'];
         if (!['/api/confirm-garment', '/api/recommend-outfits', '/api/discard-garment', ...featureRoutes].includes(pathname)) throw failure(404, 'NOT_FOUND', 'Not found.');
         const session = sessions.get(payload.garment_id);
         if (!session) throw failure(410, 'SESSION_EXPIRED', 'This styling session has expired. Identify your photo again to continue.');
@@ -213,7 +214,7 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
             image = validateImage(payload.image);
             if (digest(image) !== session.image_hash) throw failure(409, 'REFERENCE_MISMATCH', 'Use the original photo for this pairing. Identify a new photo to change it.');
           }
-          const kind = pathname === '/api/generate-pairing-image' ? 'image' : pathname === '/api/preview-outfit' ? 'preview' : 'model';
+          const kind = pathname === '/api/generate-pairing-image' ? 'image' : 'preview';
           return sendJson(response, 202, await generation.start(kind, context, { retry: payload.retry === true, image }));
         }
         if (pathname === '/api/confirm-garment') {
@@ -227,17 +228,28 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
         const allowed = catalogue.filter(item => item.category !== confirmed.category);
         const occasion = payload.occasion ?? null;
         if (occasion !== null && !['casual', 'work', 'going_out'].includes(occasion)) throw failure(400, 'INVALID_OCCASION', 'Choose a listed occasion.');
-        const result = await provider(`Recommend three distinct combinations (one or two acceptable) for the user's garment. User-confirmed attributes are authoritative, including corrections: ${JSON.stringify(confirmed)}. Original photo analysis for context only: ${JSON.stringify(session.analysis)}. Occasion: ${occasion || 'everyday'}. Select only complementary item IDs from this illustrative catalogue: ${JSON.stringify(allowed.map(({ id, description, colour, pattern, category }) => ({ id, description, colour, pattern, category })))}. Reference the confirmed garment's specific colour, pattern or silhouette in each one-sentence explanation (under 35 words). Return JSON: {"outfits":[{"catalogue_item_id":"valid ID","name":"short look name","explanation":"sentence","confidence":0.0}]}. Do not return image URLs.`);
+        const direction = payload.style ?? 'mixed';
+        if (direction !== 'mixed' && !Object.hasOwn(styleDirections, direction)) throw failure(400, 'INVALID_STYLE', 'Choose a listed styling direction.');
+        const season = payload.season ?? 'auto';
+        const gender = payload.gender ?? 'unspecified';
+        if (season !== 'auto' && !Object.hasOwn(seasonalPalettes, season)) throw failure(400, 'INVALID_SEASON', 'Choose a listed seasonal palette.');
+        if (!Object.hasOwn(genderDirections, gender)) throw failure(400, 'INVALID_GENDER', 'Choose a listed gender option.');
+        const result = await provider(stylingPrompt(confirmed, session.analysis, allowed, occasion, direction, season, gender));
         if (!Array.isArray(result?.outfits) || result.outfits.length < 1 || result.outfits.length > 3) throw malformed();
         const used = new Set();
         const pairings = new Map();
         const outfits = result.outfits.map((outfit, index) => {
           const item = allowed.find(item => item.id === outfit?.catalogue_item_id);
           if (!item || used.has(item.id) || !text(outfit.name, 60) || !text(outfit.explanation, 300) || !score(outfit.confidence)) throw malformed();
+          if (outfit.style_id !== undefined && (!Object.hasOwn(styleDirections, outfit.style_id) || (direction !== 'mixed' && outfit.style_id !== direction))) throw malformed();
+          if (outfit.styling_tip !== undefined && !text(outfit.styling_tip, 180)) throw malformed();
+          if (outfit.palette_id !== undefined && (!Object.hasOwn(seasonalPalettes, outfit.palette_id) || (season !== 'auto' && outfit.palette_id !== season))) throw malformed();
           used.add(item.id);
-          const context = pairingContext({ ...session, confirmed }, item);
+          const context = pairingContext({ ...session, confirmed, gender }, item);
           pairings.set(context.pairing_id, context);
-          return { outfit_id: `${payload.garment_id}-${index}`, pairing_id: context.pairing_id, name: outfit.name, items: [
+          return { outfit_id: `${payload.garment_id}-${index}`, pairing_id: context.pairing_id, name: outfit.name,
+            style: outfit.style_id ? styleDirections[outfit.style_id].label : direction !== 'mixed' ? styleDirections[direction].label : 'Scandinavian edit',
+            season: outfit.palette_id || (season !== 'auto' ? season : null), colour_story: colourStory(confirmed, item), styling_tip: outfit.styling_tip || '', items: [
             { item_id: payload.garment_id, ownership: 'user_item', ...confirmed, image_ref: 'user_upload', source_state: 'live' },
             { item_id: item.id, ownership: 'suggested_item', category: item.category, description: item.description, colour: item.colour, pattern: item.pattern, garment_attributes: context.attributes, generated_image_ref: null, generation_status: 'idle', image_ref: item.image_ref, image_label: 'Illustrative pairing', source_state: 'live' }
           ], occasion, explanation: outfit.explanation, confidence: outfit.confidence, source_state: 'live' };
@@ -260,11 +272,7 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
         response.writeHead(200, { 'content-type': asset.contentType, 'cache-control': 'public, max-age=31536000, immutable', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' });
         return response.end(request.method === 'HEAD' ? undefined : asset.data);
       }
-      if (pathname === '/vendor/model-viewer.min.js') {
-        const data = await fs.promises.readFile(path.join(root, 'node_modules/@google/model-viewer/dist/model-viewer.min.js'));
-        response.writeHead(200, { 'content-type': 'text/javascript', 'x-content-type-options': 'nosniff' });
-        return response.end(request.method === 'HEAD' ? undefined : data);
-      }
+
       const relative = pathname === '/' ? 'index.html' : decodeURIComponent(pathname).replace(/^\/+/, '');
       const filePath = path.resolve(publicDir, relative);
       if (!filePath.startsWith(publicDir + path.sep)) throw failure(404, 'NOT_FOUND', 'Not found.');

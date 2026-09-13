@@ -1,3 +1,4 @@
+import { seasonalPalettes } from './seasonal-palettes.js';
 const $ = (s) => document.querySelector(s);
 let photo = "",
   garmentId = "",
@@ -7,11 +8,9 @@ let photo = "",
   currentOutfits = [],
   activePairing = "",
   pollTimer,
-  modelViewerLoaded = false,
   resultsShown = false,
   pollStartedAt = 0,
   previewBusy = false,
-  modelBusy = false,
   previewTrigger,
   cardPollStartedAt = 0;
 const cardActions = new Set();
@@ -81,6 +80,7 @@ function reset() {
   cardActions.clear();
   resultsShown = false;
   $("#preview").removeAttribute("src");
+  $("#season-swatches").replaceChildren();
   $("#preview-wrap").hidden = true;
   $("#dropzone").hidden = false;
   $("#details-panel").hidden = true;
@@ -311,11 +311,22 @@ function render(outfits, sample = false, focusAction) {
     }
     const copy = node("div", "card-copy");
     copy.append(
-      node("p", "meta", "Illustrative pairing"),
+      node("p", "meta look-direction", [outfit.style || "Illustrative pairing", seasonalPalettes[outfit.season]?.label].filter(Boolean).join(" / ")),
       node("h3", "", outfit.name),
       node("p", "pairing-description", suggestion?.description || ""),
       node("p", "explanation", outfit.explanation),
     );
+    if (Array.isArray(outfit.colour_story)) {
+      const story = node('div', 'colour-story');
+      story.setAttribute('aria-label', 'Outfit colours; approximate screen swatches');
+      for (const colour of outfit.colour_story) {
+        const label = node('span', 'colour-token');
+        if (/^#[0-9a-f]{6}$/i.test(colour.hex || '')) { const chip = node('i', 'colour-dot'); chip.style.backgroundColor = colour.hex; chip.setAttribute('aria-hidden', 'true'); label.append(chip); }
+        label.append(document.createTextNode(colour.label)); label.title = colour.role; story.append(label);
+      }
+      copy.append(story, node('p', 'colour-caption', 'Colour study \u00b7 approximate swatches'));
+    }
+    if (outfit.styling_tip) copy.append(node('p', 'styling-tip', outfit.styling_tip));
     const actions = node("div", "card-actions");
     if (!sample) {
       for (const [action, label] of [
@@ -467,8 +478,7 @@ function syncPolling() {
   const pending = currentOutfits.some(
       (outfit) =>
         isPending(imageState(outfit)) ||
-        isPending(outfit.preview || outfit.generation?.preview) ||
-        isPending(outfit.model || outfit.generation?.model),
+        isPending(outfit.preview || outfit.generation?.preview),
     );
   if (!pending) { cardPollStartedAt = 0; $('#check-pairing-progress')?.remove(); return; }
   cardPollStartedAt ||= Date.now();
@@ -506,7 +516,7 @@ $("#details-panel").addEventListener("submit", async (event) => {
     );
     const result = await api(
       "recommend-outfits",
-      { garment_id: garmentId, confirmed_attributes: attributes, occasion },
+      { garment_id: garmentId, confirmed_attributes: attributes, occasion, style: $('#style-direction').value, season: $('#season-palette').value, gender: $('#gender-preference').value },
       signal,
     );
     if (version !== revision) return;
@@ -582,6 +592,21 @@ $("#recommendations").addEventListener("click", async (event) => {
       button.disabled = false;
   }
 });
+function updateSeasonSwatches() {
+  const palette = seasonalPalettes[$('#season-palette').value];
+  const wrap = $('#season-swatches');
+  wrap.replaceChildren();
+  if (!palette) return;
+  wrap.append(node('span', 'preference-help', palette.label + ' - approximate chart colours'));
+  for (const hex of palette.colours) {
+    const dot = node('span', 'season-chip');
+    dot.style.backgroundColor = hex;
+    dot.title = hex;
+    dot.setAttribute('aria-hidden', 'true');
+    wrap.append(dot);
+  }
+}
+$('#season-palette').addEventListener('change', updateSeasonSwatches);
 function activeOutfit() {
   return findOutfit(activePairing);
 }
@@ -594,11 +619,6 @@ function clearDialog() {
     ),
   );
   $("#preview-controls").replaceChildren();
-  $("#model-wrap").replaceChildren(
-    node("p", "", "Choose a 2D preview or explore the outfit in 3D."),
-  );
-  $("#model-controls").replaceChildren();
-  $("#model-status").textContent = "Ready when you are";
 }
 async function openPreview(outfit, trigger) {
   stopPolling();
@@ -609,7 +629,7 @@ async function openPreview(outfit, trigger) {
   $("#outfit-dialog-title").textContent =
     outfit.name || "See the pairing together";
   $("#preview-provenance").textContent =
-    "Your original photo is sent again only when you explicitly create this preview. Generated previews and models may be cached.";
+    "Your original photo is sent again only when you explicitly create this preview. Generated previews may be cached.";
   clearDialog();
   $("#outfit-dialog").showModal();
   renderPreview(outfit);
@@ -639,7 +659,6 @@ function renderPreview(outfit) {
   if (!outfit || pairingId(outfit) !== activePairing) return;
   const preview = outfit.preview ||
       outfit.generation?.preview || { status: "idle" },
-    model = outfit.model || outfit.generation?.model || { status: "idle" },
     imageBox = $("#preview-image-wrap"),
     controls = $("#preview-controls");
   controls.replaceChildren();
@@ -680,8 +699,7 @@ function renderPreview(outfit) {
       previewBusy || isPending(preview) || preview.status === "setup_required";
     controls.append(button);
   }
-  renderModel(outfit, model);
-  if (isPending(preview) || isPending(model)) schedulePreviewPoll();
+  if (isPending(preview)) schedulePreviewPoll();
 }
 async function generatePreview(retry) {
   const outfit = activeOutfit(),
@@ -709,100 +727,6 @@ async function generatePreview(retry) {
     if (version === revision && id === activePairing) renderPreview(outfit);
   }
 }
-function renderModel(outfit, model) {
-  const wrap = $("#model-wrap"),
-    controls = $("#model-controls"),
-    preview = outfit.preview || outfit.generation?.preview || {};
-  const simple = model.method === 'openai-parametric';
-  $('.model-note').textContent = simple
-    ? 'A simplified 3D sketch from your confirmed garment details. Patterns and fine details are simplified; this does not predict fit.'
-    : 'A generated mannequin approximation. Fit and details that are not visible in your photo may differ.';
-  controls.replaceChildren();
-  $("#model-status").textContent =
-    model.status === "succeeded"
-      ? provenance(model, simple ? 'Simplified 3D' : '3D asset')
-      : model.status.replace("_", " ");
-  if (model.status === "succeeded" && model.asset_url) {
-    const existing = wrap.querySelector('model-viewer');
-    const viewer = existing?.getAttribute('src') === model.asset_url ? existing : document.createElement("model-viewer");
-    viewer.setAttribute('src', model.asset_url);
-    viewer.alt = `Interactive 3D generated mannequin wearing ${suggested(outfit)?.description || "the selected pairing"}`;
-    viewer.setAttribute("camera-controls", "");
-    viewer.setAttribute("touch-action", "pan-y");
-    viewer.setAttribute("interaction-prompt", "auto");
-    viewer.setAttribute("shadow-intensity", "1");
-    viewer.setAttribute("camera-orbit", "0deg 75deg 105%");
-    viewer.addEventListener("error", () => {
-      wrap.replaceChildren(
-        node(
-          "p",
-          "",
-          preview.status === 'succeeded' ? "The 3D view could not load. Your 2D preview is still available." : 'The 3D view could not load. Please reload it.',
-        ),
-      );
-      controls.replaceChildren(createButton('Reload 3D view', () => renderModel(outfit, model)));
-    });
-    if (viewer !== existing) wrap.replaceChildren(viewer);
-    controls.append(
-      createButton("Reset view", () => {
-        viewer.cameraOrbit = "0deg 75deg 105%";
-        viewer.fieldOfView = "auto";
-      }),
-    );
-    return;
-  }
-  wrap.replaceChildren(
-    node(
-      "p",
-      "",
-      model.message ||
-        (isPending(model)
-          ? "Creating a rotatable 3D mannequin…"
-          : simple ? 'Explore a simplified outfit in 3D using your confirmed garment details.' : "A 3D version is available after your 2D preview is ready."),
-    ),
-  );
-  if (simple || preview.status === "succeeded") {
-    const retry = model.status === "failed",
-      button = createButton(
-        retry ? "Retry Explore in 3D" : "Explore in 3D",
-        () => generateModel(retry),
-      );
-    button.disabled =
-      modelBusy || isPending(model) || model.status === "setup_required";
-    controls.append(button);
-  }
-}
-async function generateModel(retry) {
-  const outfit = activeOutfit(),
-    version = revision,
-    id = activePairing;
-  if (!outfit || modelBusy) return;
-  $('#dialog-status').textContent = '';
-  modelBusy = true;
-  renderPreview(outfit);
-  try {
-    await ensureModelViewer();
-    Object.assign(
-      outfit,
-      await api("generate-outfit-model", {
-        garment_id: garmentId,
-        pairing_id: id,
-        ...(retry ? { retry: true } : {}),
-      }),
-    );
-    if (version === revision && id === activePairing) renderPreview(outfit);
-  } catch (error) {
-    if (version === revision && id === activePairing) $("#dialog-status").textContent = error.message;
-  } finally {
-    modelBusy = false;
-    if (version === revision && id === activePairing) renderPreview(outfit);
-  }
-}
-async function ensureModelViewer() {
-  if (modelViewerLoaded || customElements.get("model-viewer")) return;
-  await import("/vendor/model-viewer.min.js");
-  modelViewerLoaded = true;
-}
 function schedulePreviewPoll() {
   stopPolling();
   if (
@@ -815,7 +739,7 @@ function schedulePreviewPoll() {
     $("#dialog-status").textContent =
       "Generation is still running. Choose Check status when you are ready.";
     const check = createButton("Check status", refreshPreview);
-    $("#model-controls").append(check);
+    $("#preview-controls").append(check);
   }
 }
 async function refreshPreview() {
@@ -827,16 +751,6 @@ async function refreshPreview() {
       outfit = activeOutfit();
     if (!outfit || version !== revision || id !== activePairing) return;
     Object.assign(outfit, result);
-    if ((outfit.model || outfit.generation?.model)?.status === "succeeded")
-      ensureModelViewer().catch(() => {
-        $("#model-wrap").replaceChildren(
-          node(
-            "p",
-            "",
-            "The 3D viewer could not load. Please reopen the outfit preview to retry.",
-          ),
-        );
-      });
     renderPreview(outfit);
   } catch (error) {
     if (version === revision && id === activePairing) $("#dialog-status").textContent = error.message;

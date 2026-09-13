@@ -1,3 +1,5 @@
+> Historical verification: 3D checks below describe the previous version. The current app has removed 3D and uses seasonal palettes plus optional gender preferences.
+
 # Outfit feature verification — 13 September 2026
 
 ## Latest: garment-image search precision

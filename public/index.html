@@ -158,7 +158,7 @@
                 <option value="work">Work</option>
                 <option value="going_out">Going out</option>
               </select></label
-            ><label class="full-width"
+            ><label class="full-width"><span id="season-label">Seasonal colour palette</span><select aria-labelledby="season-label" id="season-palette" aria-describedby="season-help"><option value="auto">Choose a palette for my garment</option><optgroup label="Spring"><option value="spring-light">Spring / Light</option><option value="spring-clear">Spring / Clear</option><option value="spring-warm">Spring / Warm</option></optgroup><optgroup label="Summer"><option value="summer-light">Summer / Light</option><option value="summer-soft">Summer / Soft</option><option value="summer-cool">Summer / Cool</option></optgroup><optgroup label="Autumn"><option value="autumn-deep">Autumn / Deep</option><option value="autumn-soft">Autumn / Soft</option><option value="autumn-warm">Autumn / Warm</option></optgroup><optgroup label="Winter"><option value="winter-deep">Winter / Deep</option><option value="winter-clear">Winter / Clear</option><option value="winter-cool">Winter / Cool</option></optgroup></select><span id="season-help" class="preference-help">Choose colours you enjoy from the seasonal chart.</span></label><div id="season-swatches" class="season-swatches full-width" aria-live="polite"></div><label class="full-width"><span id="gender-label">Gender</span><select aria-labelledby="gender-label" id="gender-preference" aria-describedby="gender-help"><option value="unspecified">Prefer not to say</option><option value="woman">Woman</option><option value="man">Man</option><option value="nonbinary">Non-binary</option></select><span id="gender-help" class="preference-help">Used to guide clothing styles. You can leave this unspecified.</span></label><label class="full-width style-choice">Styling direction<select id="style-direction" aria-describedby="style-help"><option value="mixed">The Scandinavian edit</option><option value="stockholm">Stockholm &mdash; quiet tailoring</option><option value="copenhagen">Copenhagen &mdash; playful colour</option></select><span id="style-help">Relaxed shapes. Deliberate colour. Your piece at the centre.</span></label><label class="full-width"
               >Your piece, in a few words<textarea
                 id="description"
                 maxlength="240"
@@ -237,20 +237,6 @@
           </p>
         </div>
         <div id="preview-controls" class="preview-controls"></div>
-      </section>
-      <section class="model-stage" aria-labelledby="model-title">
-        <div class="model-heading">
-          <h3 id="model-title">Explore in 3D</h3>
-          <span id="model-status" class="job-badge">Ready when you are</span>
-        </div>
-        <p class="model-note">
-          A generated mannequin approximation. Fit and details that are not
-          visible in your photo may differ.
-        </p>
-        <div id="model-wrap" class="model-wrap">
-          <p>Choose a 2D preview or explore the outfit in 3D.</p>
-        </div>
-        <div id="model-controls" class="preview-controls"></div>
       </section>
     </dialog>
     <script src="/app.js" type="module"></script>
