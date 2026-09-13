@@ -26,7 +26,8 @@ for(const category of ['top','bottom']) test(`${category} full visual flow at ph
   await expect(page.getByText('Suggested pairing',{exact:true})).toHaveCount(3);
   const original=await page.locator('#preview').getAttribute('src');
   for(const image of await page.locator('.piece:first-child img').all())expect(await image.getAttribute('src')).toBe(original);
-  expect(await page.locator('.garment-image').evaluateAll(images=>images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);
+  await expect(page.locator('.piece:nth-child(2) img')).toHaveCount(3, { timeout: 12000 });
+  await expect.poll(() => page.locator('.garment-image').evaluateAll(images=>images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(errors).toEqual([]);
   await page.screenshot({path:`test-results/${category}-mobile.png`,fullPage:true});

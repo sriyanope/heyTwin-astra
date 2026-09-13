@@ -48,3 +48,18 @@ The OpenAI model is a simplified parametric outfit sketch, not image-to-3D recon
 To finish the remaining live checks, approve sending the local white T-shirt verification photo (`/tmp/heytwin-verification/top.jpg`) to the OpenAI image-edit endpoint and using the configured SerpApi key for one text-only Shopping query. Automatic approval review rejected the first because the specific image/destination and possible charge had not been approved; it rejected the second because transmitting that credential lacked explicit approval. These actions were not retried after rejection.
 
 There is no production deployment or distributed queue. Restart the development server and open `http://localhost:4173`; upload/confirm a garment, find pairings, then **Preview outfit → Explore in 3D**. Configuration and retention details are in [FEATURE_SETUP.md](FEATURE_SETUP.md).
+
+## Pairing-image fix — 13 September 2026
+
+Reproduced `404 NOT_FOUND` from `/api/pairing-state` and `/api/generate-pairing-image` on the user's port 4173. The listener had started at 11:55, before the backend route changes at 12:51. It served current frontend files but retained the previous backend in memory. Restarted the app and changed `npm run dev` to `node --watch server.mjs` so imported backend changes reload automatically. A request without a session now reaches the generation route's `410 SESSION_EXPIRED` validation instead of returning route-not-found.
+
+Per the user's clarified preference, each new pairing automatically requests its suggested garment image. The right-hand image slot shows progress, then the generated PNG; the left-hand upload remains unchanged. Cached results skip generation. Failures remain on their own card and require manual retry, including after unrelated rerenders. Sample pairings remain explicitly separate.
+
+- Updated browser suite: **11/11 passed**, including top/bottom upload, automatic generation on all cards, side-by-side placement, manual retry, no rerender duplicates and refresh/cache reuse.
+- Build and diff checks passed.
+- One live OpenAI text-only request generated cream wide-leg trousers. The verification upload and garment identification/styling stayed local and controlled; no user photo was sent externally.
+- Rechecked the generated image from cache on the actual pairing-page UI, desktop and 390-pixel mobile: original unchanged, images adjacent, no failed API responses, no console errors.
+- [Desktop evidence](verification/image-generation/pairing-desktop.png), [mobile evidence](verification/image-generation/pairing-mobile.png), [cached verification report](verification/image-generation/result.json).
+- Reusable verifier: `node scripts/verify-pairing-image.mjs`. Its cache is isolated from the app's single-writer manifest; it permits at most one text-only image request and reuses successful cached output.
+
+After the backend restart, refresh localhost:4173 and upload/confirm the garment again to create a current session.
