@@ -14,7 +14,7 @@ import { extractProduct, extractProductLinks } from './merchant.mjs';
 
 const sourcesPath = path.join(dataDir, 'sources.json');
 
-export async function importProduct(url, entry, { items, fetchImpl = fetch, sourceName = new URL(url).hostname } = {}) {
+export async function importProduct(url, entry, { items, fetchImpl = fetch, sourceName = new URL(url).hostname, outDir } = {}) {
   if (!entry.permission_basis || !entry.permission_basis.trim()) {
     return { status: 'skipped', reason: 'missing-permission-basis', url };
   }
@@ -45,7 +45,7 @@ export async function importProduct(url, entry, { items, fetchImpl = fetch, sour
   if (!entry.reviewed) return { status: 'skipped', reason: 'not-yet-reviewed', url };
 
   const id = `${entry.target_category}-${slugify(entry.subcategory || product.name || 'item')}-${shortHash(url, 6)}`;
-  const { image_ref, thumbnail_ref } = writeCatalogueImage(id, processed.preview, processed.thumbnail);
+  const { image_ref, thumbnail_ref } = outDir ? writeCatalogueImage(id, processed.preview, processed.thumbnail, outDir) : writeCatalogueImage(id, processed.preview, processed.thumbnail);
   const item = {
     id, name: entry.name || product.name || 'Untitled item', category: entry.target_category, subcategory: entry.subcategory || '',
     colour_primary: entry.colour_primary || '', colour_secondary: entry.colour_secondary || '', pattern: entry.pattern || '',
@@ -60,14 +60,14 @@ export async function importProduct(url, entry, { items, fetchImpl = fetch, sour
   return { status: 'accepted', url, id };
 }
 
-export async function importCollection(entry, { items, fetchImpl = fetch } = {}) {
+export async function importCollection(entry, { items, fetchImpl = fetch, outDir } = {}) {
   if (!entry.permission_basis || !entry.permission_basis.trim()) return [{ status: 'skipped', reason: 'missing-permission-basis', url: entry.url }];
   const page = await cachedGetText(entry.url, { cacheSubdir: 'merchant/pages', fetchImpl });
   if (page.blocked) return [{ status: 'skipped', reason: 'robots-disallowed', url: entry.url }];
   if (page.status !== 200) return [{ status: 'failed', reason: `http-${page.status}`, url: entry.url }];
   const links = extractProductLinks(page.body, entry.url).slice(0, entry.max_items || 20);
   const results = [];
-  for (const link of links) results.push(await importProduct(link, entry, { items, fetchImpl }));
+  for (const link of links) results.push(await importProduct(link, entry, { items, fetchImpl, outDir }));
   return results;
 }
 

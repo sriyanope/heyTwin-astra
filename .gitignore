@@ -169,8 +169,18 @@ cython_debug/
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#macOS,Python
 # Node and browser verification
+!/lib/
+!/lib/*.mjs
 node_modules/
 playwright-report/
 test-results/
 .env.*
 !.env.example
+
+# Catalogue import pipeline: raw fetch cache, originals and review scratch are all
+# regeneratable (npm run catalogue:discover / catalogue:build) and gitignored. The
+# processed preview images (public/catalogue/real/) and data/catalogue-items.json are
+# NOT ignored — those are the shipped, reviewed catalogue.
+data/catalogue-cache/
+data/catalogue-inbox/*
+!data/catalogue-inbox/.gitkeep

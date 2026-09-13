@@ -4,7 +4,7 @@ A small, mobile-first styling demo: upload one top or bottom, check the AI’s d
 
 ## Run
 
-Requires Node.js 22 or newer. The application has no runtime dependencies.
+Requires Node.js 22 or newer. Run `npm ci` to install the locally served 3D viewer and development tools.
 
 ```sh
 cp .env.example .env  # only if .env does not already exist
@@ -32,11 +32,12 @@ VISION_TIMEOUT_MS=45000
 - JPG, PNG and WebP upload up to 8 MB, separate camera action, browser image decoding, original preview, replacement and reset. HEIC is not accepted; export it as JPEG first.
 - Vision identification of category, colour, pattern and visible description; unclear photos request a clearer image.
 - Mandatory confirmation with editable category, colour, pattern, description and optional occasion. Corrected attributes are authoritative in recommendation prompts.
-- One to three distinct AI-selected complementary pieces from eight local illustrations. Every outfit contains a top and bottom, labels **Your item** and **Suggested pairing**, and includes a short explanation.
+- One to three distinct AI-selected complementary pieces from the local catalogue (original illustrations plus reviewed, rights-cleared photos — see below). Every outfit contains a top and bottom, labels **Your item** and **Suggested pairing**, and includes a short explanation.
 - Original photo displayed unchanged with `object-fit: contain`. Suggested images are explicitly illustrative; no product availability or ownership is implied.
 - Separate, clearly labelled prepared sample, accessible loading/errors, request timeouts, retry, and stale-request protection.
+- Explicit garment image generation, **Find similar** product results, and **Preview outfit → Explore in 3D**. 3D defaults to OpenAI-assisted garment parameters and a local simplified GLB; Meshy is optional. Generated assets are cached, while original uploads remain transient. See [feature setup](FEATURE_SETUP.md) and [feature verification](FEATURE_VERIFICATION.md).
 
-The original SVG catalogue is authored for heyTwin under the repository’s MIT licence. `data/catalogue.mjs` defines valid IDs and descriptions; `scripts/build-catalogue.mjs` produces the images. No external catalogue URLs are accepted from the model. The limited palette and silhouettes constrain recommendation variety.
+`data/catalogue.mjs` exports the single catalogue array the server recommends from: 8 original SVG illustrations authored for heyTwin under the repository's MIT licence, plus any imported photo whose record in `data/catalogue-items.json` a human has reviewed and approved. The model is only ever shown item IDs, colours, patterns and descriptions — it never receives or returns an image URL, so it cannot fabricate one or point at a garment outside the catalogue. See [CATALOGUE.md](CATALOGUE.md) for how the photo catalogue is collected, reviewed and rebuilt (`npm run catalogue:build`), its source configuration (`data/sources.json`), and the import report (`data/catalogue-report.md`).
 
 ## API and retention
 
@@ -50,7 +51,7 @@ The implementation follows the illustrative endpoints in `instructions/API_CONTR
 | `POST /api/recommend-outfits` | `{ garment_id, confirmed_attributes, occasion }` → `outfits`, with two ownership-tagged items each. Occasion is `casual`, `work`, `going_out` or null. |
 | `POST /api/discard-garment` | `{ garment_id }` → removes temporary attributes on reset. |
 
-Photos stay in browser memory and in the transient analysis request; heyTwin never saves or logs them. Only analysis and corrected attributes are held server-side for up to 15 minutes (cleaned at one-minute intervals), or until reset. Provider data handling is governed by its own policies. Refreshing the page loses the photo. No accounts, database or local storage.
+Original photos stay in browser memory and transient provider requests; heyTwin never saves or logs the uploads. Creating an outfit preview sends the original to the image service again. Analysis, corrected attributes, an image hash and authorized pairing contexts are held server-side for 15 minutes, extended by feature actions, or until reset. Generated images and GLBs persist in `data/generated`; reset does not delete those derived assets. Provider data handling follows its own policies. Refreshing loses the original photo; reuploading the same photo with the same confirmed details recovers matching cached assets. No accounts or browser local storage.
 
 ## Verify
 

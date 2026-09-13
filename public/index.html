@@ -1,36 +1,258 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#FFF7DA"><title>heyTwin | Style what you already own</title>
-  <link rel="preload" href="/fonts/Franxurter.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="/fonts/Poppins-Regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <main class="shell">
-    <header class="topbar"><a class="brand" href="/" aria-label="heyTwin home"><img class="brand-logo" src="/brand/heytwin.png" alt="heyTwin" width="1920" height="1080"></a><span class="privacy-note">A fresh look for an old favourite.</span></header>
-    <section class="intro" aria-labelledby="page-title"><h1 id="page-title">Start with a piece,<br>leave with a look.</h1><p class="lede">That top you never wear? Those hard-to-style trousers? Let’s find their other half.</p></section>
-    <ol class="progress" aria-label="Styling steps"><li id="step-upload" aria-current="step">01 <span>Your piece</span></li><li id="step-confirm">02 <span>The details</span></li><li id="step-results">03 <span>Your pairings</span></li></ol>
-    <div class="workspace">
-      <section class="upload-panel panel" aria-labelledby="upload-title">
-        <div class="section-heading"><div><h2 id="upload-title">Start with one piece</h2><p>A clear photo of one top or bottom is all you need.</p></div></div>
-        <div class="dropzone" id="dropzone"><span class="upload-icon" aria-hidden="true"><img src="/brand/camera.png" alt="" width="1920" height="1080"></span><p class="drop-title">Meet your next favourite outfit.</p><button type="button" id="choose-photo" class="primary-button">Style this piece <span aria-hidden="true">↗</span></button><button type="button" id="take-photo" class="plain-button">Take a photo</button><span class="drop-hint">JPG, PNG or WebP · up to 8 MB</span></div>
-        <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" hidden aria-label="Choose a garment photo">
-        <input id="camera-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden aria-label="Take a garment photo">
-        <div id="preview-wrap" hidden><div class="preview-wrap"><img id="preview" alt="Your uploaded garment"></div><div class="photo-actions"><span class="meta">Your item</span><button id="replace-photo" type="button" class="plain-button">Replace photo</button><button id="remove-photo" type="button" class="plain-button">Remove</button></div></div>
-        <p class="privacy-copy">When you continue, your photo is sent to our AI service for styling. heyTwin does not save your photo. The service’s own data policies apply.</p>
-        <button id="identify-button" class="primary-button" type="button" hidden>Identify my piece <span aria-hidden="true">→</span></button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFF7DA" />
+    <title>heyTwin | Style what you already own</title>
+    <link
+      rel="preload"
+      href="/fonts/Franxurter.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/Poppins-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="heyTwin home"
+          ><img
+            class="brand-logo"
+            src="/brand/heytwin.png"
+            alt="heyTwin"
+            width="1920"
+            height="1080" /></a
+        ><span class="privacy-note">A fresh look for an old favourite.</span>
+      </header>
+      <section class="intro" aria-labelledby="page-title">
+        <h1 id="page-title">Start with a piece,<br />leave with a look.</h1>
+        <p class="lede">
+          That top you never wear? Those hard-to-style trousers? Let’s find
+          their other half.
+        </p>
       </section>
-      <aside id="empty-panel" class="empty-panel" aria-label="How it works"><p class="eyebrow">LESS “WHAT GOES WITH THIS?”</p><span class="hanger-motif" aria-hidden="true"><img src="/brand/hanger.png" alt="" width="1920" height="1080"></span><h2>More wear.<br>More you.</h2><div class="editorial-pair" aria-hidden="true"><img src="/catalogue/blue-shirt.svg" alt=""><span>+</span><img src="/catalogue/cream-trousers.svg" alt=""></div><p>We’ll suggest a top or bottom to go with your piece, and tell you why it works.</p><p class="meta">Illustrative pairing</p><button id="sample-button" type="button" class="plain-button">View a sample pairing ↗</button></aside>
-      <form id="details-panel" class="details-panel panel" hidden>
-        <div class="section-heading"><div><p class="eyebrow">LET’S GET YOUR PIECE RIGHT</p><h2 id="details-title" tabindex="-1">Does this look right?</h2><p id="confidence-note">Check the details before we style it.</p></div></div>
-        <div class="fields"><label>It’s a<select id="category"><option value="top">Top</option><option value="bottom">Bottom</option></select></label><label>Colour<input id="colour" maxlength="80" required autocomplete="off"></label><label>Pattern<input id="pattern" maxlength="80" required autocomplete="off"></label><label>Occasion<select id="occasion"><option value="">Any day</option><option value="casual">Casual</option><option value="work">Work</option><option value="going_out">Going out</option></select></label><label class="full-width">Your piece, in a few words<textarea id="description" maxlength="240" rows="3" required></textarea></label></div>
-        <button id="recommend-button" class="primary-button" type="submit">Find my pairings <span aria-hidden="true">→</span></button>
-      </form>
-    </div>
-    <div id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></div>
-    <section id="results" class="results" aria-labelledby="results-title" hidden><div class="results-heading"><div><p class="eyebrow">YOUR OUTFIT EDIT</p><h2 id="results-title" tabindex="-1">Better together.</h2></div><span id="source-badge" class="source-badge"></span></div><p id="result-note" class="result-note">Your original photo, paired with illustrative suggestions. You may already have something similar.</p><div id="recommendations" class="recommendations"></div><button id="another-button" class="secondary-button" type="button">Style another piece ↗</button></section>
-    <footer>One piece. A little inspiration. A whole new outfit.</footer>
-  </main><script src="/app.js" type="module"></script>
-</body></html>
+      <ol class="progress" aria-label="Styling steps">
+        <li id="step-upload" aria-current="step">01 <span>Your piece</span></li>
+        <li id="step-confirm">02 <span>The details</span></li>
+        <li id="step-results">03 <span>Your pairings</span></li>
+      </ol>
+      <div class="workspace">
+        <section class="upload-panel panel" aria-labelledby="upload-title">
+          <div class="section-heading">
+            <div>
+              <h2 id="upload-title">Start with one piece</h2>
+              <p>A clear photo of one top or bottom is all you need.</p>
+            </div>
+          </div>
+          <div class="dropzone" id="dropzone">
+            <span class="upload-icon" aria-hidden="true"
+              ><img src="/brand/camera.png" alt="" width="1920" height="1080"
+            /></span>
+            <p class="drop-title">Meet your next favourite outfit.</p>
+            <button type="button" id="choose-photo" class="primary-button">
+              Style this piece <span aria-hidden="true">↗</span></button
+            ><button type="button" id="take-photo" class="plain-button">
+              Take a photo</button
+            ><span class="drop-hint">JPG, PNG or WebP · up to 8 MB</span>
+          </div>
+          <input
+            id="image-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            aria-label="Choose a garment photo"
+          />
+          <input
+            id="camera-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="environment"
+            hidden
+            aria-label="Take a garment photo"
+          />
+          <div id="preview-wrap" hidden>
+            <div class="preview-wrap">
+              <img id="preview" alt="Your uploaded garment" />
+            </div>
+            <div class="photo-actions">
+              <span class="meta">Your item</span
+              ><button id="replace-photo" type="button" class="plain-button">
+                Replace photo</button
+              ><button id="remove-photo" type="button" class="plain-button">
+                Remove
+              </button>
+            </div>
+          </div>
+          <p class="privacy-copy">
+            When you continue, your photo is sent to our AI service for styling.
+            heyTwin does not save your photo. The service’s own data policies
+            apply.
+          </p>
+          <button
+            id="identify-button"
+            class="primary-button"
+            type="button"
+            hidden
+          >
+            Identify my piece <span aria-hidden="true">→</span>
+          </button>
+        </section>
+        <aside id="empty-panel" class="empty-panel" aria-label="How it works">
+          <p class="eyebrow">LESS “WHAT GOES WITH THIS?”</p>
+          <span class="hanger-motif" aria-hidden="true"
+            ><img src="/brand/hanger.png" alt="" width="1920" height="1080"
+          /></span>
+          <h2>More wear.<br />More you.</h2>
+          <div class="editorial-pair" aria-hidden="true">
+            <img src="/catalogue/blue-shirt.svg" alt="" /><span>+</span
+            ><img src="/catalogue/cream-trousers.svg" alt="" />
+          </div>
+          <p>
+            We’ll suggest a top or bottom to go with your piece, and tell you
+            why it works.
+          </p>
+          <p class="meta">Illustrative pairing</p>
+          <button id="sample-button" type="button" class="plain-button">
+            View a sample pairing ↗
+          </button>
+        </aside>
+        <form id="details-panel" class="details-panel panel" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">LET’S GET YOUR PIECE RIGHT</p>
+              <h2 id="details-title" tabindex="-1">Does this look right?</h2>
+              <p id="confidence-note">Check the details before we style it.</p>
+            </div>
+          </div>
+          <div class="fields">
+            <label
+              >It’s a<select id="category">
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+              </select></label
+            ><label
+              >Colour<input
+                id="colour"
+                maxlength="80"
+                required
+                autocomplete="off" /></label
+            ><label
+              >Pattern<input
+                id="pattern"
+                maxlength="80"
+                required
+                autocomplete="off" /></label
+            ><label
+              >Occasion<select id="occasion">
+                <option value="">Any day</option>
+                <option value="casual">Casual</option>
+                <option value="work">Work</option>
+                <option value="going_out">Going out</option>
+              </select></label
+            ><label class="full-width"
+              >Your piece, in a few words<textarea
+                id="description"
+                maxlength="240"
+                rows="3"
+                required
+              ></textarea>
+            </label>
+          </div>
+          <button id="recommend-button" class="primary-button" type="submit">
+            Find my pairings <span aria-hidden="true">→</span>
+          </button>
+        </form>
+      </div>
+      <div
+        id="status"
+        class="status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
+      <section
+        id="results"
+        class="results"
+        aria-labelledby="results-title"
+        hidden
+      >
+        <div class="results-heading">
+          <div>
+            <p class="eyebrow">YOUR OUTFIT EDIT</p>
+            <h2 id="results-title" tabindex="-1">Better together.</h2>
+          </div>
+          <span id="source-badge" class="source-badge"></span>
+        </div>
+        <p id="result-note" class="result-note">
+          Your original photo, paired with illustrative suggestions. You may
+          already have something similar.
+        </p>
+        <div id="recommendations" class="recommendations"></div>
+        <button id="another-button" class="secondary-button" type="button">
+          Style another piece ↗
+        </button>
+      </section>
+      <footer>One piece. A little inspiration. A whole new outfit.</footer>
+    </main>
+    <dialog
+      id="outfit-dialog"
+      class="outfit-dialog"
+      aria-labelledby="outfit-dialog-title"
+    >
+      <div class="dialog-bar">
+        <div>
+          <p class="eyebrow">OUTFIT PREVIEW</p>
+          <h2 id="outfit-dialog-title">See the pairing together</h2>
+        </div>
+        <button
+          id="close-preview"
+          class="icon-button"
+          type="button"
+          aria-label="Close outfit preview"
+        >
+          ×
+        </button>
+      </div>
+      <p id="preview-provenance" class="preview-provenance"></p>
+      <p
+        id="dialog-status"
+        class="dialog-status"
+        role="status"
+        aria-live="polite"
+      ></p>
+      <section class="preview-stage" aria-labelledby="preview-image-title">
+        <h3 id="preview-image-title">2D outfit preview</h3>
+        <div id="preview-image-wrap" class="preview-image-wrap">
+          <p class="preview-empty">
+            Choose “Preview outfit” to create a neutral mannequin preview.
+          </p>
+        </div>
+        <div id="preview-controls" class="preview-controls"></div>
+      </section>
+      <section class="model-stage" aria-labelledby="model-title">
+        <div class="model-heading">
+          <h3 id="model-title">Explore in 3D</h3>
+          <span id="model-status" class="job-badge">Ready when you are</span>
+        </div>
+        <p class="model-note">
+          A generated mannequin approximation. Fit and details that are not
+          visible in your photo may differ.
+        </p>
+        <div id="model-wrap" class="model-wrap">
+          <p>Generate the 2D preview first, then choose Explore in 3D.</p>
+        </div>
+        <div id="model-controls" class="preview-controls"></div>
+      </section>
+    </dialog>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

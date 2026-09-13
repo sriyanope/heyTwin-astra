@@ -68,7 +68,7 @@ async function discover() {
         // cache (cacheSubdir 'originals' matches import's), then makes a small local
         // review copy — constructing Commons' own /thumb/ URLs is unreliable for titles
         // with punctuation, so this avoids that entirely.
-        const image = await cachedGetBinary(fullResUrl, { cacheSubdir: 'originals', log: e => console.log('  ', e.event, e.url || '') });
+        const image = await cachedGetBinary(fullResUrl, { cacheSubdir: 'originals', log: e => console.log('  ', e.event, e.status || e.error || '', e.url || '') });
         if (image.status === 200 && image.buffer) {
           try {
             const { default: sharp } = await import('sharp');
@@ -77,7 +77,7 @@ async function discover() {
             entry.review_thumb = reviewPath;
             record(runLog, 'accepted', { stage: 'discover', source: title });
           } catch { entry.status = 'rejected'; entry.reason = 'undecodable'; record(runLog, 'failed', { reason: entry.reason, source: title }); }
-        } else { entry.status = 'rejected'; entry.reason = 'image-download-failed'; record(runLog, 'failed', { reason: entry.reason, source: title }); }
+        } else { entry.status = 'rejected'; entry.reason = `image-download-failed (http ${image.status || 'network-error'})`; record(runLog, 'failed', { reason: entry.reason, source: title }); }
       }
       candidates.push(entry);
       byTitle.set(title, entry);

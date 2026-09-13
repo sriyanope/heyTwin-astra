@@ -117,7 +117,7 @@ export async function isAllowedByRobots(url, fetchImpl = fetch) {
 // ---- rate-limited, cached, retried fetch ------------------------------------
 
 const lastRequestAtByHost = new Map();
-const MIN_INTERVAL_MS = 1500;
+const MIN_INTERVAL_MS = 6000;
 
 async function throttle(hostname) {
   const last = lastRequestAtByHost.get(hostname) || 0;
@@ -162,7 +162,7 @@ export async function cachedGetText(url, { cacheSubdir = 'pages', ttlMs = 30 * 2
 }
 
 // Cached GET for binary data (images). Returns { status, buffer, fromCache, url }.
-export async function cachedGetBinary(url, { cacheSubdir = 'originals', timeoutMs = 20000, retries = 2, fetchImpl = fetch, log = () => {} } = {}) {
+export async function cachedGetBinary(url, { cacheSubdir = 'originals', timeoutMs = 30000, retries = 3, fetchImpl = fetch, log = () => {} } = {}) {
   const dir = path.join(cacheDir, cacheSubdir);
   ensureDir(dir);
   const file = path.join(dir, shortHash(url, 20));
@@ -173,12 +173,22 @@ export async function cachedGetBinary(url, { cacheSubdir = 'originals', timeoutM
     log({ event: 'robots-disallowed', url });
     return { status: 0, buffer: null, fromCache: false, blocked: true, url };
   }
-  await throttle(new URL(url).hostname);
-  let lastError;
+  let lastError, lastStatus;
   for (let attempt = 0; attempt <= retries; attempt++) {
+    await throttle(new URL(url).hostname);
     try {
       const response = await fetchImpl(url, { redirect: 'follow', signal: AbortSignal.timeout(timeoutMs), headers: { 'user-agent': USER_AGENT } });
-      if (!response.ok) return { status: response.status, buffer: null, fromCache: false, url };
+      if (!response.ok) {
+        lastStatus = response.status;
+        const retryable = response.status === 429 || response.status >= 500;
+        log({ event: 'fetch-retry', url, attempt, status: response.status });
+        if (retryable && attempt < retries) {
+          const retryAfter = Number(response.headers.get('retry-after'));
+          await sleep(retryAfter > 0 ? retryAfter * 1000 : 1500 * (attempt + 1));
+          continue;
+        }
+        return { status: response.status, buffer: null, fromCache: false, url };
+      }
       const buffer = Buffer.from(await response.arrayBuffer());
       fs.writeFileSync(file, buffer);
       saveJson(metaFile, { url, contentType: response.headers.get('content-type') || '', fetchedAt: Date.now() });
@@ -186,11 +196,11 @@ export async function cachedGetBinary(url, { cacheSubdir = 'originals', timeoutM
     } catch (error) {
       lastError = error;
       log({ event: 'fetch-retry', url, attempt, error: error.message });
-      if (attempt < retries) await sleep(1000 * (attempt + 1));
+      if (attempt < retries) await sleep(1500 * (attempt + 1));
     }
   }
-  log({ event: 'fetch-failed', url, error: lastError?.message });
-  return { status: 0, buffer: null, fromCache: false, error: lastError?.message, url };
+  log({ event: 'fetch-failed', url, error: lastError?.message, status: lastStatus });
+  return { status: lastStatus || 0, buffer: null, fromCache: false, error: lastError?.message, url };
 }
 
 // ---- license allowlist --------------------------------------------------------
@@ -225,12 +235,13 @@ export async function validateAndProcessImage(buffer, { minDimension = 250 } = {
   return { ok: true, width: metadata.width, height: metadata.height, format: metadata.format, preview, thumbnail };
 }
 
-export function writeCatalogueImage(id, preview, thumbnail) {
-  ensureDir(publicCatalogueDir);
-  ensureDir(path.join(publicCatalogueDir, 'thumbs'));
-  fs.writeFileSync(path.join(publicCatalogueDir, `${id}.jpg`), preview);
-  fs.writeFileSync(path.join(publicCatalogueDir, 'thumbs', `${id}.jpg`), thumbnail);
-  return { image_ref: `/catalogue/real/${id}.jpg`, thumbnail_ref: `/catalogue/real/thumbs/${id}.jpg` };
+export function writeCatalogueImage(id, preview, thumbnail, dir = publicCatalogueDir) {
+  ensureDir(dir);
+  ensureDir(path.join(dir, 'thumbs'));
+  fs.writeFileSync(path.join(dir, `${id}.jpg`), preview);
+  fs.writeFileSync(path.join(dir, 'thumbs', `${id}.jpg`), thumbnail);
+  const isDefaultDir = dir === publicCatalogueDir;
+  return { image_ref: isDefaultDir ? `/catalogue/real/${id}.jpg` : path.join(dir, `${id}.jpg`), thumbnail_ref: isDefaultDir ? `/catalogue/real/thumbs/${id}.jpg` : path.join(dir, 'thumbs', `${id}.jpg`) };
 }
 
 export function today() {

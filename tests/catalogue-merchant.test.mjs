@@ -1,9 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { once } from 'node:events';
 import sharp from 'sharp';
 import { importProduct, importCollection } from '../scripts/catalogue/import-merchant.mjs';
+
+// Every test writes processed images to a throwaway directory, never to the real
+// public/catalogue/real/ — that directory holds only human-reviewed, committed assets.
+function scratchOutDir(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heytwin-catalogue-test-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  return dir;
+}
 
 // Proves the generic merchant importer against a local fixture server, since no real
 // blogshop URL with confirmed reuse permission is available in this repository yet.
@@ -43,22 +54,24 @@ test('merchant importer skips entries with no recorded permission basis', async 
 
 test('merchant importer extracts JSON-LD product image, validates it, and requires explicit review before going live', async t => {
   const base = await startFixtureServer(t);
+  const outDir = scratchOutDir(t);
   const items = [];
   const entry = { target_category: 'top', subcategory: 't-shirt', permission_basis: 'Fixture authored for this test; not a real merchant.', reviewed: false };
-  const notYetReviewed = await importProduct(`${base}/product/sample-top`, entry, { items });
+  const notYetReviewed = await importProduct(`${base}/product/sample-top`, entry, { items, outDir });
   assert.equal(notYetReviewed.status, 'skipped');
   assert.equal(notYetReviewed.reason, 'not-yet-reviewed');
 
-  const result = await importProduct(`${base}/product/sample-top`, { ...entry, reviewed: true, colour_primary: 'blue' }, { items });
+  const result = await importProduct(`${base}/product/sample-top`, { ...entry, reviewed: true, colour_primary: 'blue' }, { items, outDir });
   assert.equal(result.status, 'accepted');
   assert.equal(items.length, 1);
   assert.equal(items[0].name, 'Sample Blue Top');
   assert.equal(items[0].category, 'top');
   assert.equal(items[0].review_status, 'approved');
   assert.equal(items[0].active, true);
-  assert.match(items[0].image_ref, /^\/catalogue\/real\/top-t-shirt-.+\.jpg$/);
+  assert.ok(items[0].image_ref.startsWith(outDir) && items[0].image_ref.includes('top-t-shirt-'));
+  assert.ok(fs.existsSync(path.join(outDir, `${items[0].id}.jpg`)));
 
-  const duplicate = await importProduct(`${base}/product/sample-top`, { ...entry, reviewed: true }, { items });
+  const duplicate = await importProduct(`${base}/product/sample-top`, { ...entry, reviewed: true }, { items, outDir });
   assert.equal(duplicate.status, 'duplicate');
 });
 
@@ -72,8 +85,9 @@ test('merchant importer only trusts Open Graph images once og:type confirms a pr
 
 test('merchant importer expands a collection page into product links', async t => {
   const base = await startFixtureServer(t);
+  const outDir = scratchOutDir(t);
   const items = [];
-  const results = await importCollection({ url: `${base}/collection/tops`, target_category: 'top', permission_basis: 'Fixture test', reviewed: true }, { items });
+  const results = await importCollection({ url: `${base}/collection/tops`, target_category: 'top', permission_basis: 'Fixture test', reviewed: true }, { items, outDir });
   assert.equal(results.length, 1);
   assert.equal(results[0].status, 'accepted');
   assert.equal(items[0].source_page, `${base}/product/sample-top`);
