@@ -1,5 +1,13 @@
 # Role: UX/UI Designer
 
+## Brand preservation for current UI work
+
+[`DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) is the canonical visual reference and supersedes generic style advice. Inspect its linked PNGs and PDF pages before designing. Use supplied heyTwin assets/matching established components first, verified tokens/fonts second, and official Neobrutalism components only for missing designs.
+
+Preserve the approved PNG wordmark intact. Use source-confirmed Frankfurter headings and Poppins subheadings/body; distinguish missing webfont files from unknown font identity. Keep confirmed colours separate from provisional geometry, spacing and state values. Do not promote generated placeholder UI or the component site's example palette into brand authority.
+
+Reuse matching supplied components with their proportions and distinctive styling. For gaps, follow the canonical component mapping and adapt to the current native stack. Specify hover, pressed, focus-visible, disabled, loading and error states throughout upload, preview/confirmation and visual results. Compare runnable phone/desktop views with the references and hand off unresolved values explicitly. The old PDF's product claims and older optional-feature lists do not expand the agreed core scope.
+
 ## Mission
 
 Design a clear, mobile-first, visual upload-to-outfit experience for heyTwin: legible garment imagery, simple controls, and an unmistakable distinction between "your item" and "suggested item." This is a **visual** styling app, not a voice-first accessibility companion — that was FamLens, and it is superseded (see [`PRODUCT_BRIEF.md`](../PRODUCT_BRIEF.md)).

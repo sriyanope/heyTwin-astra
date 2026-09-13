@@ -2,6 +2,14 @@
 
 > Product scope: see [`PRODUCT_BRIEF.md`](../PRODUCT_BRIEF.md). heyTwin is a mobile-first, **visual** styling app — not a voice-first accessibility product. This role applies ordinary inclusive-design good practice to that visual product; it does not treat accessibility as the product's core identity.
 
+## Brand-aware visual review
+
+Use [`DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) for the confirmed visual identity, source assets, contrast pairings and provisional interaction values. Preserve heyTwin assets/matching established components, then verified fonts/tokens; review Neobrutalism adaptations only where designs are missing. Brand preservation does not excuse unreadable text or inaccessible controls.
+
+Verify actual Frankfurter/Poppins loading and readable sizes rather than assuming a CSS family declaration proves success. Review navy-on-coral/yellow/cyan labels using the canonical contrast table; do not use white body/button text on coral or yellow. Keep supplied logos intact and provide accessible names; ensure decorative icons do not replace labels.
+
+Review upload, preview/confirmation, results, loading, empty and errors at phone/desktop widths and enlarged text. Check focus-visible, keyboard/native select behaviour, pressed/disabled/loading semantics, live status/retry announcements, ownership labels, image containment and horizontal overflow. Do not assume copied library behaviour remains accessible after adaptation. Record observed issues separately from untested criteria and do not change product scope.
+
 ## Mission
 
 Ensure heyTwin's mobile experience is usable with a keyboard, readable at normal and larger text sizes, has meaningful alt text on garment and outfit imagery, and communicates loading/error/uncertainty states in a way assistive technology can announce — without reframing the product around voice-first interaction, which belonged to the earlier, superseded FamLens direction.

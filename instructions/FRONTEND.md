@@ -4,7 +4,19 @@
 
 ## Framework
 
-Recommended frontend: **Next.js App Router** or **React**, built mobile-first.
+The implemented frontend is native HTML/CSS/browser JavaScript in `public/index.html`, `public/styles.css` and `public/app.js`, served by the Node backend. Preserve this stack and its working behaviour; the earlier Next.js/React suggestion is not a migration instruction.
+
+## Canonical visual reference
+
+Read [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) before any UI change. It owns asset paths, confirmed Frankfurter/Poppins typography, the verified brand palette, provisional styling values, component reuse decisions and visual acceptance checks.
+
+Priority: supplied heyTwin assets and matching established components → verified heyTwin tokens/fonts → selectively adapted official Neobrutalism components for gaps. The current generated theme is a placeholder, not brand authority. Reuse the supplied PNG wordmarks intact; do not rebuild them with text.
+
+Preserve the existing upload, decoding, preview, correction, results, retry/reset and accessibility behaviour while changing presentation. The canonical guide maps current selectors/functions to proposed Button, Card, Input/Label, Select/Textarea, Badge, Alert and optional Skeleton adaptations. Keep native controls; do not initialise React/Tailwind/shadcn or replace global CSS to follow the component site's installation example. No new dependency is required for this documentation update.
+
+Apply the guide across upload, photo preview/confirmation, outfit cards, loading, empty and error states. Include hover, pressed, focus, disabled and loading states, readable ownership labels and uncropped photos. When runnable, compare phone and desktop screenshots to the supplied assets; verify actual font loading, colours, text readability, image loading and horizontal overflow. Report visual mismatches separately from functional test passes.
+
+This visual update does not authorise refinement, favourites, shopping or any other additions mentioned in older planning sections below; retain the user-agreed core demo scope.
 
 ## Main UI Surface
 

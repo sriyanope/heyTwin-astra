@@ -4,6 +4,8 @@
 .LSOverride
 .deepeval
 
+/data
+
 # Icon must end with two \r
 Icon
 

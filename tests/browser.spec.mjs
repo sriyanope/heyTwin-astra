@@ -73,3 +73,17 @@ test('unclear analysis and reset during loading do not render stale results',asy
   await expect(page.locator('#details-panel')).toBeHidden();
   await expect(page.locator('#preview-wrap')).toBeHidden();
 });
+test('brand fonts, logo and responsive layout load at 320, 390 and 1280 pixels',async({page})=>{
+  for(const width of [320,390,1280]){
+    await page.setViewportSize({width,height:900});
+    await upload(page);
+    await page.evaluate(()=>document.fonts.ready);
+    expect(await page.evaluate(()=>document.fonts.check('400 32px Franxurter')&&document.fonts.check('400 16px Poppins')&&document.fonts.check('700 16px Poppins'))).toBe(true);
+    expect(await page.locator('.brand-logo').evaluate(image=>image.complete&&image.naturalWidth===1920)).toBe(true);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.screenshot({path:`test-results/brand-confirm-${width}.png`,fullPage:true});
+    await page.locator('#recommend-button').focus();
+    await expect(page.locator('#recommend-button')).toBeFocused();
+    expect(await page.locator('#recommend-button').evaluate(button=>getComputedStyle(button).outlineStyle)).not.toBe('none');
+  }
+});

@@ -1,5 +1,13 @@
 # Role: Frontend Developer
 
+## Brand implementation contract
+
+Read [`DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) and [`FRONTEND.md`](../FRONTEND.md) before presentation changes. Preserve supplied heyTwin assets and matching established components first; use verified tokens/fonts next; adapt official Neobrutalism components only for design gaps. Current generated CSS is not brand authority.
+
+Use the supplied PNG wordmark without recreation or distortion. Load the verified heading/body fonts from appropriate runtime assets and check actual rendering; never claim a fallback is the confirmed font. Reuse working native upload/preview/confirmation/result code and semantics. Follow the canonical component mapping, including interaction states, without replacing global styles or migrating frameworks. Add only necessary compatible dependencies.
+
+Inspect current diffs before editing; coordinate with concurrent work. At phone and desktop widths, compare against supplied references, check font loading and shared colour values, text readability, visible focus, uncropped garment images and horizontal overflow. Keep “Your item”/“Suggested pairing,” loading/error announcements, correction requests and retry behaviour working. Report documentation-only changes separately from UI changes and visual validation. Do not add optional features from older role lists to the agreed core demo.
+
 ## Mission
 
 Implement heyTwin's mobile-first upload-to-outfit UI and connect it to backend APIs: capture/upload, garment attribute confirmation, outfit cards, loading/error states, and whichever prioritised-addition refinements the team has time for. See [`PRODUCT_BRIEF.md`](../PRODUCT_BRIEF.md) for the essential flow this UI must complete end to end.

@@ -196,7 +196,7 @@ export function createApp({ env = loadEnv(), provider = createProvider(env), now
       const filePath = path.resolve(publicDir, relative);
       if (!filePath.startsWith(publicDir + path.sep)) throw failure(404, 'NOT_FOUND', 'Not found.');
       const data = await fs.promises.readFile(filePath).catch(() => { throw failure(404, 'NOT_FOUND', 'Not found.'); });
-      const type = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' }[path.extname(filePath)] || 'application/octet-stream';
+      const type = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.ttf': 'font/ttf', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' }[path.extname(filePath)] || 'application/octet-stream';
       response.writeHead(200, { 'content-type': `${type}; charset=utf-8`, 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', 'content-security-policy': "default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'" });
       response.end(request.method === 'HEAD' ? undefined : data);
     } catch (error) {

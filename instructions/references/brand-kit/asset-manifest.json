@@ -1,0 +1,62 @@
+[
+  {
+    "path": "original logo/original_mono_logo.png",
+    "archive_entry": "TFR Brand Kit/original logo/original_mono_logo.png",
+    "sha256": "260cf96135e00f03e2020c176b621b47dbfba912db0ab31e3098dbc092ad1061"
+  },
+  {
+    "path": "original logo/original_color_logo.png",
+    "archive_entry": "TFR Brand Kit/original logo/original_color_logo.png",
+    "sha256": "4f406011a83a3b85694c42af7ba4c2e9edd13cc650c96aae9b0975f112cde905"
+  },
+  {
+    "path": "short logo/short_color_logo.png",
+    "archive_entry": "TFR Brand Kit/short logo/short_color_logo.png",
+    "sha256": "c159804e5d9a6026ad14b30708c4365756e6386690f035ed0ee3ac2f58f69be6"
+  },
+  {
+    "path": "short logo/short_mono_logo.png",
+    "archive_entry": "TFR Brand Kit/short logo/short_mono_logo.png",
+    "sha256": "3b6888efd40d180f098d752d202e06db56a562131e73a5de4e839b19a006bafd"
+  },
+  {
+    "path": "icons/hanger 1.png",
+    "archive_entry": "TFR Brand Kit/icons/hanger 1.png",
+    "sha256": "5ffa44732171aa85fac2cc2581076047ec4c0abd95ac48863e5f8a1d59fd4a5c"
+  },
+  {
+    "path": "icons/hanger 2.png",
+    "archive_entry": "TFR Brand Kit/icons/hanger 2.png",
+    "sha256": "1d43329d290c5cf119778ccd9a075f4da2168c10b96053e2472c10c12c5ca6a3"
+  },
+  {
+    "path": "icons/camera 2.png",
+    "archive_entry": "TFR Brand Kit/icons/camera 2.png",
+    "sha256": "f43153406147aff517e288cd936c724edda9d925916a5a05abf8667c945599e0"
+  },
+  {
+    "path": "icons/camera 1.png",
+    "archive_entry": "TFR Brand Kit/icons/camera 1.png",
+    "sha256": "f8ab434ccc5b2183e5e82e7d1210c8770bb5231569f9118404ff9884cacbed9c"
+  },
+  {
+    "path": "icons/tape measure.png",
+    "archive_entry": "TFR Brand Kit/icons/tape measure.png",
+    "sha256": "e887173e3cbeb25d37306adc6888e024707ec8a3d974fc9e10597e358376305c"
+  },
+  {
+    "path": "icons/wardrobe 2.png",
+    "archive_entry": "TFR Brand Kit/icons/wardrobe 2.png",
+    "sha256": "00a7bdc5172452c93ab4d0d980aefb78303901d849f7b6c274036e9931deb419"
+  },
+  {
+    "path": "icons/wardrobe 1.png",
+    "archive_entry": "TFR Brand Kit/icons/wardrobe 1.png",
+    "sha256": "1798aef43d56dc02cc67a91ac2b2c99022bf478f68e418f155e630d0ee707a34"
+  },
+  {
+    "path": "icons/mannequin.png",
+    "archive_entry": "TFR Brand Kit/icons/mannequin.png",
+    "sha256": "b3469d1e160f18988c192183eea97af6b64e42ffe62d264e7c308b613a0f5cec"
+  }
+]
