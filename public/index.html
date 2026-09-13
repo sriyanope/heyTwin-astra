@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3efe7">
+  <title>heyTwin | Style what you already own</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="heyTwin home"><span class="brand-mark">ht</span><span>heyTwin</span></a>
+      <span class="privacy-note">Photos are processed temporarily</span>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">YOUR CLOSET, RECOMBINED</p>
+      <h1 id="page-title">Give your lonely clothes somewhere to go.</h1>
+      <p class="lede">Photograph one top or bottom. We’ll build a complete look around the piece you already love.</p>
+    </section>
+
+    <form id="styler-form" class="workspace">
+      <section class="upload-panel panel" aria-labelledby="upload-title">
+        <div class="section-heading"><span class="step">01</span><div><h2 id="upload-title">Start with one piece</h2><p>Use a clear photo on a simple background.</p></div></div>
+        <label class="dropzone" id="dropzone" for="image-input">
+          <input id="image-input" name="image" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+          <span class="upload-icon" aria-hidden="true">+</span>
+          <span class="drop-title">Take a photo or choose one</span>
+          <span class="drop-hint">JPG, PNG or WebP · up to 8 MB</span>
+        </label>
+        <div id="preview-wrap" class="preview-wrap" hidden>
+          <img id="preview" alt="Your uploaded garment">
+          <button id="remove-photo" type="button" class="text-button">Remove photo</button>
+        </div>
+      </section>
+
+      <section id="details-panel" class="details-panel panel" aria-labelledby="details-title" hidden>
+        <div class="section-heading"><span class="step">02</span><div><h2 id="details-title">Check the details</h2><p>Make a quick correction if we missed something.</p></div></div>
+        <div class="fields">
+          <label>It’s a <select id="category"><option value="top">Top</option><option value="bottom">Bottom</option></select></label>
+          <label>Colour <input id="colour" value="black" maxlength="40" autocomplete="off"></label>
+          <label>Pattern <input id="pattern" value="solid" maxlength="40" autocomplete="off"></label>
+          <label>For <select id="occasion"><option>casual</option><option>work</option><option>going out</option></select></label>
+        </div>
+        <button id="recommend-button" class="primary-button" type="submit">Build my outfit <span aria-hidden="true">→</span></button>
+      </section>
+    </form>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <section id="results" class="results" aria-labelledby="results-title" hidden>
+      <div class="results-heading"><div><p class="eyebrow">YOUR OUTFIT EDIT</p><h2 id="results-title">Built around your item</h2></div><span id="source-badge" class="source-badge"></span></div>
+      <p id="blocker" class="blocker" hidden></p>
+      <div id="recommendations" class="recommendations"></div>
+      <button id="another-button" class="secondary-button" type="button">Style another garment <span aria-hidden="true">↗</span></button>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
