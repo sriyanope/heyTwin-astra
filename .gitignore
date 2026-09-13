@@ -166,3 +166,9 @@ dmypy.json
 cython_debug/
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#macOS,Python
+# Node and browser verification
+node_modules/
+playwright-report/
+test-results/
+.env.*
+!.env.example
